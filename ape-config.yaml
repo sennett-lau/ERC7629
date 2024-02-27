@@ -1,1 +1,16 @@
 name: ERC7629
+
+plugins:
+  - name: solidity
+  - name: etherscan
+
+dependencies:
+  - name: openzeppelin
+    github: OpenZeppelin/openzeppelin-contracts
+    version: 5.0.1
+
+solidity:
+  version: 0.8.23
+  optimize: true
+  import_remapping:
+    - "@openzeppelin/contracts=openzeppelin/v5.0.1"
