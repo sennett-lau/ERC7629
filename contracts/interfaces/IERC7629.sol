@@ -139,23 +139,6 @@ interface IERC7629  is IERC165 {
     ) external returns (bool);
 
     /**
-     * @dev Approve the spender to spend the specified amount of ERC-20 tokens.
-     * @param spender The address of the spender.
-     * @param value The amount of ERC-20 tokens to approve.
-     */
-    function erc20Approve(
-        address spender,
-        uint256 value
-    ) external returns (bool);
-
-    /**
-     * @dev Approve the operator to spend the specified ERC-721 token.
-     * @param spender The address of the spender.
-     * @param tokenId The ID of the ERC-721 token to approve.
-     */
-    function erc721Approve(address spender, uint256 tokenId) external payable;
-
-    /**
      * @dev Set or unset the approval of an operator for all tokens.
      * @param operator The address of the operator.
      * @param approved The approval status.
@@ -173,57 +156,7 @@ interface IERC7629  is IERC165 {
         address to,
         uint256 amountOrId
     ) external returns (bool);
-
-    /**
-     * @dev Transfer ERC-20 tokens from one address to another.
-     * @param from The address to transfer ERC-20 tokens from.
-     * @param to The address to transfer ERC-20 tokens to.
-     * @param value The amount of ERC-20 tokens to transfer.
-     */
-    function erc20TransferFrom(
-        address from,
-        address to,
-        uint256 value
-    ) external returns (bool);
-
-    /**
-     * @dev Transfer ERC-721 token from one address to another.
-     * @param from The address to transfer ERC-721 token from.
-     * @param to The address to transfer ERC-721 token to.
-     * @param tokenId The ID of the ERC-721 token to transfer.
-     */
-    function erc721TransferFrom(
-        address from,
-        address to,
-        uint256 tokenId
-    ) external payable;
     
-    /**
-     * @notice Transfers the ownership of an NFT from one address to another address
-     * @dev Throws unless `msg.sender` is the current owner, an authorized
-     *  operator, or the approved address for this NFT. Throws if `_rom` is
-     *  not the current owner. Throws if `_to` is the zero address. Throws if
-     *  `tokenId` is not a valid NFT. When transfer is complete, this function
-     *  checks if `to` is a smart contract (code size > 0). If so, it calls
-     *  `onERC721Received` on `to` and throws if the return value is not
-     *  `bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"))`.
-     * @param from The current owner of the NFT
-     * @param to The new owner
-     * @param tokenId The NFT to transfer
-     * @param data Additional data with no specified format, sent in call to `to`
-     */
-    function safeTransferFrom(address from, address to, uint256 tokenId, bytes calldata data) external payable;
-
-    /**
-     * @notice Transfers the ownership of an NFT from one address to another address
-     * @dev This works identically to the other function with an extra data parameter,
-     *  except this function just sets data to "".
-     * @param from The current owner of the NFT
-     * @param to The new owner
-     * @param tokenId The NFT to transfer
-     */
-    function safeTransferFrom(address from, address to, uint256 tokenId) external payable;
-
     /**
      * @dev Transfer ERC-20 tokens to an address.
      * @param to The address to transfer ERC-20 tokens to.
