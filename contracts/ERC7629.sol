@@ -69,7 +69,7 @@ abstract contract ERC7629 is IERC7629 {
      * @param decimals_ The number of decimals used in the token.
      * @param units_ The unit value for ERC-20 conversion.
      */
-    constructor(string memory name_, string memory symbol_, uint8 decimals_, uint8 units_) {
+    constructor(string memory name_, string memory symbol_, uint8 decimals_, uint256 units_) {
         _name = name_;
         _symbol = symbol_;
         _decimals = decimals_;
