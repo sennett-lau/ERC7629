@@ -2,7 +2,9 @@
 def test_erc20_to_erc721(deployer, example_token, accounts):
 
     units = example_token.getUnit()
-    example_token.erc20ToERC721(3*units, sender=deployer)
+    tx = example_token.erc20ToERC721(3*units, sender=deployer)
+    tx_events = tx.events
+    assert tx_events[-1].event_arguments['tokenIds'] == [1, 2, 3]
     assert example_token.erc721BalanceOf(deployer) == 3
 
 

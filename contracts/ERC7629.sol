@@ -482,6 +482,7 @@ abstract contract ERC7629 is IERC7629 {
 
         _erc721TransferFrom(from, to, tokenId);
         _mintERC20(from , _units);
+        emit ERC721ToERC20(to, tokenId, _units);
     }
 
     /**
@@ -498,19 +499,23 @@ abstract contract ERC7629 is IERC7629 {
         uint256 nftMintAmount = _owned[address(this)].length < nftAmount ? nftAmount-_owned[address(this)].length : 0;
         uint256 nftTransferAmount= nftAmount - nftMintAmount;
 
+        uint256[] memory tokenIds= new uint256[](nftAmount);
+
         for (uint256 i=0; i<nftMintAmount; i++){
             unchecked {
                 minted++;
             }
             uint256 tokenId = minted;
             _mintERC721(msg.sender, tokenId);
+            tokenIds[i] = tokenId;
         }
         
         for (uint256 i=0; i<nftTransferAmount; i++){
             uint256 tokenId=_owned[address(this)][_owned[address(this)].length - 1];
             _updateERC721(msg.sender, tokenId);
-
+            tokenIds[i+nftMintAmount] = tokenId;
         }
+        emit ERC20ToERC721(msg.sender, ftAmount, tokenIds);
     }
 
     /**
