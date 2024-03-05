@@ -36,6 +36,19 @@ interface IERC7629  is IERC165 {
         uint256 indexed tokenId
     );
 
+    // Approval event for ERC-20
+    event ERC20Approval(
+        address indexed owner,
+        address indexed approved,
+        uint256 indexed tokenId
+    );
+    // Approval event for ERC-721
+    event ERC721Approval(
+        address indexed owner,
+        address indexed approved,
+        uint256 indexed tokenId
+    );
+
     // ApprovalForAll event for ERC-721
     event ApprovalForAll(
         address indexed owner,

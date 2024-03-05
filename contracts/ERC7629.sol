@@ -217,6 +217,7 @@ abstract contract ERC7629 is IERC7629 {
         _allowances[msg.sender][spender] = value;
 
         emit Approval(msg.sender, spender, value);
+        emit ERC20Approval(msg.sender, spender, value);
 
         return true;
     }
@@ -248,6 +249,7 @@ abstract contract ERC7629 is IERC7629 {
 
             if (emitEvent) {
                 emit Approval(owner, to, tokenId);
+                emit ERC721Approval(owner, to, tokenId);
             }
         }
 
