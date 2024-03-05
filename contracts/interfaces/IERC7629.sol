@@ -42,6 +42,7 @@ interface IERC7629  is IERC165 {
         address indexed approved,
         uint256 indexed tokenId
     );
+    
     // Approval event for ERC-721
     event ERC721Approval(
         address indexed owner,
