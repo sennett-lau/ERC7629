@@ -2,6 +2,7 @@
 pragma solidity ^ 0.8.0;
 
 import "./interfaces/IERC7629.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 
 abstract contract ERC7629 is IERC7629 {
 
@@ -269,6 +270,70 @@ abstract contract ERC7629 is IERC7629 {
     }
 
     /**
+    * @dev Returns the address approved to transfer the given token ID.
+    * @param tokenId The ID of the token to query.
+    * @return The address approved to transfer the token.
+    * @notice Throws an error if the token does not exist.
+    */
+    function getApproved(uint256 tokenId) public view virtual returns (address) {
+        address owner = ownerOf(tokenId);
+        if (owner == address(0)) {
+            revert ERC721NonexistentToken(tokenId);
+        }
+        return _tokenApprovals[tokenId];
+    }
+
+    /**
+    * @dev Transfers a token from one address to another, checking if the recipient is a smart contract.
+    * @param from The address to transfer the token from.
+    * @param to The address to transfer the token to.
+    * @param tokenId The ID of the token to transfer.
+    */
+    function safeTransferFrom(address from, address to, uint256 tokenId) public {
+        safeTransferFrom(from, to, tokenId, "");
+    }
+
+    /**
+    * @dev Transfers a token from one address to another, checking if the recipient is a smart contract.
+    * @param from The address to transfer the token from.
+    * @param to The address to transfer the token to.
+    * @param tokenId The ID of the token to transfer.
+    * @param data Additional data with no specified format, sent in call to `to`.
+    */
+    function safeTransferFrom(address from, address to, uint256 tokenId, bytes memory data) public virtual {
+        transferFrom(from, to, tokenId);
+        _checkOnERC721Received(from, to, tokenId, data);
+    }
+
+
+    /**
+    * @dev Checks if the recipient is a smart contract by calling onERC721Received, if implemented.
+    * @param from The address from which the token is transferred.
+    * @param to The address to which the token is transferred.
+    * @param tokenId The ID of the token being transferred.
+    * @param data Additional data with no specified format, sent in call to `to`.
+    * @notice Throws an error if the recipient is a smart contract and does not implement onERC721Received.
+    */
+    function _checkOnERC721Received(address from, address to, uint256 tokenId, bytes memory data) private {
+        if (to.code.length > 0) {
+            try IERC721Receiver(to).onERC721Received(msg.sender, from, tokenId, data) returns (bytes4 retval) {
+                if (retval != IERC721Receiver.onERC721Received.selector) {
+                    revert ERC721InvalidReceiver(to);
+                }
+            } catch (bytes memory reason) {
+                if (reason.length == 0) {
+                    revert ERC721InvalidReceiver(to);
+                } else {
+                    /// @solidity memory-safe-assembly
+                    assembly {
+                        revert(add(32, reason), mload(reason))
+                    }
+                }
+            }
+        }
+    }
+
+    /**
      * @dev Transfer tokens or NFTs from one address to another.
      * @param from The address to transfer from.
      * @param to The address to transfer to.
@@ -332,6 +397,13 @@ abstract contract ERC7629 is IERC7629 {
         _updateERC20(from, to, value);
     }
 
+    /**
+    * @dev Updates ERC-20 token balances during a transfer.
+    * @param from The address from which tokens are transferred.
+    * @param to The address to which tokens are transferred.
+    * @param value The amount of ERC-20 tokens to transfer.
+    * @notice Handles minting and burning tokens, preventing overflow and emitting transfer events.
+    */
     function _updateERC20(address from, address to, uint256 value) internal virtual {
         if (from == address(0)) {
             // Overflow check required: The rest of the code assumes that totalSupply never overflows
@@ -385,6 +457,13 @@ abstract contract ERC7629 is IERC7629 {
         }
     }
 
+    /**
+    * @dev Updates the ownership of an ERC-721 token during a transfer.
+    * @param to The address to which the token is being transferred.
+    * @param tokenId The ID of the ERC-721 token being transferred.
+    * @return The address from which the token is transferred.
+    * @notice Clears approval, updates balances, and emits transfer events.
+    */
     function _updateERC721(address to, uint256 tokenId) internal virtual returns (address) {
         address from = ownerOf(tokenId);
 
@@ -418,10 +497,18 @@ abstract contract ERC7629 is IERC7629 {
         _owners[tokenId] = to;
 
         emit ERC721Transfer(from, to, tokenId);
+        emit Transfer(from, to, tokenId);
 
         return from;
     }
 
+    /**
+    * @dev Transfers ERC-20 tokens from one address to another.
+    * @param to The address to transfer the tokens to.
+    * @param amount The amount of ERC-20 tokens to transfer.
+    * @return A boolean indicating success.
+    * @notice Prevents burning tokens to address(0).
+    */
     function transfer(address to, uint256 amount) external returns (bool) {
         // Prevent burning tokens to 0x0.
         if (to == address(0)) {
@@ -432,6 +519,12 @@ abstract contract ERC7629 is IERC7629 {
         return true;
     }
 
+    /**
+    * @dev Mints new ERC-20 tokens to the specified account.
+    * @param account The account to which new ERC-20 tokens are minted.
+    * @param value The amount of ERC-20 tokens to mint.
+    * @notice Prevents minting tokens to address(0).
+    */
     function _mintERC20(address account, uint256 value) internal {
         if (account == address(0)) {
             revert ERC20InvalidReceiver(address(0));
@@ -439,6 +532,13 @@ abstract contract ERC7629 is IERC7629 {
         _updateERC20(address(0), account, value);
     }
 
+
+    /**
+    * @dev Burns ERC-20 tokens from the specified account.
+    * @param account The account from which ERC-20 tokens are burned.
+    * @param value The amount of ERC-20 tokens to burn.
+    * @notice Prevents burning tokens from address(0).
+    */
     function _burnERC20(address account, uint256 value) internal {
         if (account == address(0)) {
             revert ERC20InvalidSender(address(0));
