@@ -20,16 +20,35 @@ The motivation behind ERC-7629 stems from the inherent need within the blockchai
 ## Configuration
 
 ### Prerequisites
+
 - Foundry
 
 ### Test (Foundry)
+
 To test the ERC-7629 implementation with foundry, test cases can be stored in `src/test` directory. The test cases can be run using the following command:
+
 ```bash
 forge test
 ```
 
 ### Format (Foundry)
+
 Simply run the following command to format the code:
+
 ```bash
 forge fmt
+```
+
+### Gas Snapshot (Foundry)
+
+To generate gas snapshot, run the following command:
+
+```bash
+forge snapshot
+```
+
+Or check the diff of gas snapshot:
+
+```bash
+forge snapshot --diff .gas-snapshot
 ```

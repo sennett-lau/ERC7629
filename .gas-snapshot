@@ -1,0 +1,3 @@
+ERC7629Test:test_erc20_to_erc721() (gas: 147185)
+ERC7629Test:test_erc20_to_erc721_batch_of_10() (gas: 802830)
+ERC7629Test:test_erc721_to_erc20() (gas: 185061)
