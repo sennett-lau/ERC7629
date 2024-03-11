@@ -35,17 +35,18 @@ contract ERC7629Test is Test {
         balance = erc7629.erc20BalanceOf(user);
 
         assertEq(balance, 0);
+    }
 
-        // convert multiple
+    function test_erc20_to_erc721_batch_of_10() public {
+        uint256 unit = erc7629.getUnit();
+        uint256 expectedAmount = 10;
+        uint256 amountToConvert = expectedAmount * unit;
 
-        expectedAmount = 10;
-        amountToConvert = expectedAmount * unit;
-
-        vm.prank(address(this));
+        address user = address(0x1);
 
         erc7629.mintERC20(user, amountToConvert);
 
-        balance = erc7629.erc20BalanceOf(user);
+        uint256 balance = erc7629.erc20BalanceOf(user);
 
         assertEq(balance, amountToConvert);
 
@@ -53,9 +54,9 @@ contract ERC7629Test is Test {
 
         erc7629.erc20ToERC721(amountToConvert);
 
-        tokenIds = erc7629.owned(user);
+        uint256[] memory tokenIds = erc7629.owned(user);
 
-        assertEq(tokenIds.length, 11);
+        assertEq(tokenIds.length, 10);
 
         for (uint256 i = 0; i < tokenIds.length; i++) {
             assertEq(tokenIds[i], i + 1);
