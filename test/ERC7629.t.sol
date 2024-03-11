@@ -65,4 +65,37 @@ contract ERC7629Test is Test {
 
         assertEq(balance, 0);
     }
+
+    function test_erc721_to_erc20() public {
+        uint256 unit = erc7629.getUnit();
+        uint256 tokenId = 1;
+
+        address user = address(0x1);
+
+        // mint erc271
+        erc7629.mintERC721(user, tokenId);
+
+        uint256[] memory ownedTokenIds = erc7629.owned(user);
+        uint256 ownedTokenId = ownedTokenIds[0];
+
+        assertEq(ownedTokenIds.length, 1);
+        assertEq(ownedTokenId, tokenId);
+
+        // convert single
+        vm.prank(user);
+        erc7629.erc721ToERC20(tokenId);
+
+        ownedTokenIds = erc7629.owned(user);
+        uint256 balance = erc7629.erc20BalanceOf(user);
+
+        assertEq(ownedTokenIds.length, 0);
+        assertEq(balance, unit);
+
+        // // contract erc721 vault checking
+        uint256[] memory contractTokenIds = erc7629.owned(address(erc7629));
+        uint256 contractTokenId = contractTokenIds[0];
+
+        assertEq(contractTokenIds.length, 1);
+        assertEq(contractTokenId, 1);
+    }
 }

@@ -17,7 +17,14 @@ contract ERC7629Mock is Ownable, ERC7629 {
         _mintERC20(to_, amount_);
     }
 
-    function tokenURI(uint256 id_) public pure override returns (string memory) {
-        return string.concat("https://example.com/token/", Strings.toString(id_));
+    function mintERC721(address to_, uint256 id_) public {
+        _mintERC721(to_, id_);
+    }
+
+    function tokenURI(
+        uint256 id_
+    ) public pure override returns (string memory) {
+        return
+            string.concat("https://example.com/token/", Strings.toString(id_));
     }
 }
