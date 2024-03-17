@@ -1,6 +1,7 @@
 pragma solidity ^0.8.13;
 
-import {Test, console} from "forge-std/Test.sol";
+import {Test} from "forge-std/Test.sol";
+import "forge-std/console.sol";
 import {ERC7629Mock} from "./mock/ERC7629Mock.sol";
 
 contract ERC7629Test is Test {
@@ -127,5 +128,92 @@ contract ERC7629Test is Test {
 
         assertEq(contractTokenIds.length, 1);
         assertEq(contractTokenId, 1);
+    }
+
+    function test_approve_erc721() public {
+        uint256 tokenId = 1;
+        address user = address(0x1);
+        address spender = address(0x2);
+
+        // mint erc271
+        erc7629.mintERC721(user, tokenId);
+
+        uint256[] memory ownedTokenIds = erc7629.owned(user);
+        uint256 ownedTokenId = ownedTokenIds[0];
+
+        assertEq(ownedTokenIds.length, 1);
+        assertEq(ownedTokenId, tokenId);
+
+        // approve
+        vm.prank(user);
+        erc7629.approve(spender, tokenId);
+
+        // // check approval
+        address approved = erc7629.getApproved(tokenId);
+        assertEq(approved, spender);
+    }
+
+    function test_approve_erc20() public {
+        uint256 amount = 10_000 * 1e18;
+
+        address user = address(0x1);
+        address spender = address(0x2);
+
+        // mint erc20
+        erc7629.mintERC20(user, amount);
+
+        uint256 balance = erc7629.erc20BalanceOf(user);
+        assertEq(balance, amount);
+
+        // approve
+        vm.prank(user);
+        erc7629.approve(spender, amount);
+
+        // check allowance
+        uint256 allowance = erc7629.allowance(user, spender);
+        assertEq(allowance, amount);
+    }
+
+    /* %=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*& */
+    /*                        ERC20 functions                       */
+    /* %=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*& */
+
+    function test_total_supply() public {
+        uint256 totalSupply = erc7629.totalSupply();
+        uint256 expectedTotalSupply = 0;
+        assertEq(totalSupply, expectedTotalSupply);
+
+        // mint 10_000 tokens
+        uint256 amountToMint = 10_000;
+        erc7629.mintERC20(address(0x1), amountToMint);
+
+        totalSupply = erc7629.totalSupply();
+        assertEq(totalSupply, amountToMint);
+    }
+
+    function test_erc20_total_supply() public {
+        uint256 totalSupply = erc7629.erc20TotalSupply();
+        uint256 expectedTotalSupply = 0;
+        assertEq(totalSupply, expectedTotalSupply);
+
+        // mint 10_000 tokens
+        uint256 amountToMint = 10_000;
+        erc7629.mintERC20(address(0x1), amountToMint);
+
+        totalSupply = erc7629.erc20TotalSupply();
+        assertEq(totalSupply, amountToMint);
+    }
+
+    function test_balance_of() public {
+        uint256 balance = erc7629.balanceOf(address(0x1));
+        uint256 expectedBalance = 0;
+        assertEq(balance, expectedBalance);
+
+        // mint 10_000 tokens
+        uint256 amountToMint = 10_000;
+        erc7629.mintERC20(address(0x1), amountToMint);
+
+        balance = erc7629.balanceOf(address(0x1));
+        assertEq(balance, amountToMint);
     }
 }
