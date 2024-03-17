@@ -532,6 +532,9 @@ abstract contract ERC7629 is IERC7629 {
         if (previousOwner != address(0)) {
             revert ERC721InvalidSender(address(0));
         }
+        unchecked {
+            minted++;
+        }
     }
 
     /**
@@ -574,10 +577,7 @@ abstract contract ERC7629 is IERC7629 {
         uint256[] memory tokenIds = new uint256[](nftAmount);
 
         for (uint256 i = 0; i < nftMintAmount; i++) {
-            unchecked {
-                minted++;
-            }
-            uint256 tokenId = minted;
+            uint256 tokenId = minted + 1;
             _mintERC721(msg.sender, tokenId);
             tokenIds[i] = tokenId;
         }
