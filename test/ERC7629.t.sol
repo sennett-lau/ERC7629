@@ -138,19 +138,43 @@ contract ERC7629Test is Test {
         // mint erc271
         erc7629.mintERC721(user, tokenId);
 
+        uint256 minted = erc7629.erc721TotalSupply();
+        assertEq(minted, tokenId);
+
         uint256[] memory ownedTokenIds = erc7629.owned(user);
         uint256 ownedTokenId = ownedTokenIds[0];
 
         assertEq(ownedTokenIds.length, 1);
         assertEq(ownedTokenId, tokenId);
 
+        address approved = erc7629.getApproved(tokenId);
+        assertEq(approved, address(0));
+
         // approve
         vm.prank(user);
         erc7629.approve(spender, tokenId);
 
         // // check approval
-        address approved = erc7629.getApproved(tokenId);
+        approved = erc7629.getApproved(tokenId);
         assertEq(approved, spender);
+
+        // transfer from
+        vm.prank(spender);
+        erc7629.transferFrom(user, spender, tokenId);
+
+        approved = erc7629.getApproved(tokenId);
+        assertEq(approved, address(0));
+
+        // spender balance
+        uint256[] memory spenderTokenIds = erc7629.owned(spender);
+        uint256 spenderTokenId = spenderTokenIds[0];
+
+        assertEq(spenderTokenIds.length, 1);
+        assertEq(spenderTokenId, tokenId);
+
+        // user balance
+        ownedTokenIds = erc7629.owned(user);
+        assertEq(ownedTokenIds.length, 0);
     }
 
     function test_approve_erc20() public {
@@ -162,16 +186,38 @@ contract ERC7629Test is Test {
         // mint erc20
         erc7629.mintERC20(user, amount);
 
+        uint256 totalSupply = erc7629.totalSupply();
+        assertEq(totalSupply, amount);
+
         uint256 balance = erc7629.erc20BalanceOf(user);
         assertEq(balance, amount);
+
+        uint256 allowance = erc7629.allowance(user, spender);
+        assertEq(allowance, 0);
 
         // approve
         vm.prank(user);
         erc7629.approve(spender, amount);
 
         // check allowance
-        uint256 allowance = erc7629.allowance(user, spender);
+        allowance = erc7629.allowance(user, spender);
         assertEq(allowance, amount);
+
+        // transfer from
+        vm.prank(spender);
+
+        erc7629.transferFrom(user, spender, amount);
+
+        allowance = erc7629.allowance(user, spender);
+        assertEq(allowance, 0);
+
+        // spender balance
+        balance = erc7629.erc20BalanceOf(spender);
+        assertEq(balance, amount);
+
+        // user balance
+        balance = erc7629.erc20BalanceOf(user);
+        assertEq(balance, 0);
     }
 
     /* %=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*& */
