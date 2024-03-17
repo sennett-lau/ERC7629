@@ -10,6 +10,35 @@ contract ERC7629Test is Test {
         erc7629 = new ERC7629Mock("Test", "TST", 18, 10_000);
     }
 
+    /* %=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*& */
+    /*                        Common metadata                       */
+    /* %=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*& */
+
+    function test_name() public {
+        string memory name = erc7629.name();
+        assertEq(name, "Test");
+    }
+
+    function test_symbol() public {
+        string memory symbol = erc7629.symbol();
+        assertEq(symbol, "TST");
+    }
+
+    function test_decimals() public {
+        uint8 decimals = erc7629.decimals();
+        assertEq(decimals, 18);
+    }
+
+    /* %=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*& */
+    /*                   ERC7629 specify functions                  */
+    /* %=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*& */
+
+    function test_get_uint() public {
+        uint256 unit = erc7629.getUnit();
+        uint256 expectedUnit = 10_000 * 10 ** 18;
+        assertEq(unit, expectedUnit);
+    }
+
     function test_erc20_to_erc721() public {
         uint256 unit = erc7629.getUnit();
         uint256 expectedAmount = 1;
