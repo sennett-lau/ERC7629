@@ -353,7 +353,7 @@ abstract contract ERC7629 is IERC7629 {
                 revert ERC20InsufficientAllowance(spender, currentAllowance, value);
             }
             unchecked {
-                _allowances[msg.sender][spender] = currentAllowance - value;
+                _allowances[from][spender] = currentAllowance - value;
             }
         }
         _transferERC20(from, to, value);
