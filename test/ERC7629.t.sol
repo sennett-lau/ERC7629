@@ -130,7 +130,11 @@ contract ERC7629Test is Test {
         assertEq(contractTokenId, 1);
     }
 
-    function test_approve_erc721() public {
+    // the following tests handles ERC7629 functions that implements ERC721
+    // as the transfer flow includes, minting, approving and transferring
+    // the approve implements _erc721TransferFrom
+    // the transferFrom implements _erc721Approve
+    function test_erc721_transfer_flow() public {
         uint256 tokenId = 1;
         address user = address(0x1);
         address spender = address(0x2);
@@ -177,7 +181,11 @@ contract ERC7629Test is Test {
         assertEq(ownedTokenIds.length, 0);
     }
 
-    function test_approve_erc20() public {
+    // the following tests handles ERC7629 functions that implements ERC20
+    // as the transfer flow includes, minting, approving and transferring
+    // the approve implements _erc20TransferFrom
+    // the transferFrom implements _erc20Approve
+    function test_erc20_transfer_flow() public {
         uint256 amount = 10_000 * 1e18;
 
         address user = address(0x1);
