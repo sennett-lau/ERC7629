@@ -4,6 +4,8 @@ import {Test} from "forge-std/Test.sol";
 import "forge-std/console.sol";
 import {ERC7629Mock} from "./mock/ERC7629Mock.sol";
 import {ERC7629} from "../src/ERC7629.sol";
+import {IERC7629} from "../src/interfaces/IERC7629.sol";
+import "@openzeppelin/contracts/interfaces/IERC165.sol";
 
 abstract contract ERC721TokenReceiver {
     function onERC721Received(
@@ -703,4 +705,20 @@ contract ERC7629Test is Test {
     }
 
     // TODO: burn erc721 with non owner reverts
+
+    /* %=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*& */
+    /*                        ERC165 functions                      */
+    /* %=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*& */
+
+    function test_supports_interface_erc165() public {
+        assertEq(erc7629.supportsInterface(type(IERC165).interfaceId), true);
+    }
+
+    function test_supports_interface_erc7629() public {
+        assertEq(erc7629.supportsInterface(type(IERC7629).interfaceId), true);
+    }
+
+    function test_supports_interface_false() public {
+        assertEq(erc7629.supportsInterface(0x12345678), false);
+    }
 }
