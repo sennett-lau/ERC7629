@@ -664,12 +664,13 @@ contract ERC7629Test is Test {
         address to = address(0x2);
 
         erc7629.mintERC721(from, 1);
+        erc7629.mintERC721(from, 2);
 
         vm.prank(from);
         erc7629.erc721TransferFrom(from, to, 1);
 
         assertEq(erc7629.ownerOf(1), to);
-        assertEq(erc7629.erc721BalanceOf(from), 0);
+        assertEq(erc7629.erc721BalanceOf(from), 1);
         assertEq(erc7629.erc721BalanceOf(to), 1);
     }
 
