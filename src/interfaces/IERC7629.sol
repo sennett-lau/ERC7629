@@ -7,55 +7,27 @@ import "@openzeppelin/contracts/interfaces/IERC165.sol";
  * @title ERC-7629 Unify Token Interface
  * @dev This interface defines the ERC-7629 Unify Token, which unifies ERC-721 and ERC-20 assets.
  */
-interface IERC7629  is IERC165 {
+interface IERC7629 is IERC165 {
     // ERC-20 Transfer event
-    event ERC20Transfer(
-        address indexed from,
-        address indexed to,
-        uint256 amount
-    );
+    event ERC20Transfer(address indexed from, address indexed to, uint256 amount);
 
     // ERC-721 Transfer event
-    event ERC721Transfer(
-        address indexed from,
-        address indexed to,
-        uint256 indexed tokenId
-    );
+    event ERC721Transfer(address indexed from, address indexed to, uint256 indexed tokenId);
 
     // ERC-721 Transfer event
-    event Transfer(
-        address indexed from,
-        address indexed to,
-        uint256 indexed tokenId
-    );
+    event Transfer(address indexed from, address indexed to, uint256 indexed tokenId);
 
     // Approval event for ERC-20 and ERC-721
-    event Approval(
-        address indexed owner,
-        address indexed approved,
-        uint256 indexed tokenId
-    );
+    event Approval(address indexed owner, address indexed approved, uint256 indexed tokenId);
 
     // Approval event for ERC-20
-    event ERC20Approval(
-        address indexed owner,
-        address indexed approved,
-        uint256 indexed tokenId
-    );
-    
+    event ERC20Approval(address indexed owner, address indexed approved, uint256 indexed tokenId);
+
     // Approval event for ERC-721
-    event ERC721Approval(
-        address indexed owner,
-        address indexed approved,
-        uint256 indexed tokenId
-    );
+    event ERC721Approval(address indexed owner, address indexed approved, uint256 indexed tokenId);
 
     // ApprovalForAll event for ERC-721
-    event ApprovalForAll(
-        address indexed owner,
-        address indexed operator,
-        bool approved
-    );
+    event ApprovalForAll(address indexed owner, address indexed operator, bool approved);
 
     // ERC-20 to ERC-721 Conversion event
     event ERC20ToERC721(address indexed to, uint256 amount, uint256[] tokenIds);
@@ -124,20 +96,14 @@ interface IERC7629  is IERC165 {
      * @param owner The address of the token owner.
      * @param operator The address of the operator to check.
      */
-    function isApprovedForAll(
-        address owner,
-        address operator
-    ) external view returns (bool);
+    function isApprovedForAll(address owner, address operator) external view returns (bool);
 
     /**
      * @dev Returns the remaining number of tokens that spender will be allowed to spend on behalf of owner.
      * @param owner The address of the token owner.
      * @param spender The address of the spender.
      */
-    function allowance(
-        address owner,
-        address spender
-    ) external view returns (uint256);
+    function allowance(address owner, address spender) external view returns (uint256);
 
     /**
      * @dev Returns the array of ERC-721 token IDs owned by a specific address.
@@ -162,10 +128,7 @@ interface IERC7629  is IERC165 {
      * @param spender The address of the spender.
      * @param amountOrId The amount of ERC-20 tokens or ID of ERC-721 tokens.
      */
-    function approve(
-        address spender,
-        uint256 amountOrId
-    ) external returns (bool);
+    function approve(address spender, uint256 amountOrId) external returns (bool);
 
     /**
      * @dev Set or unset the approval of an operator for all tokens.
@@ -180,11 +143,7 @@ interface IERC7629  is IERC165 {
      * @param to The address to transfer ERC-20 tokens or ERC-721 token to.
      * @param amountOrId The amount of ERC-20 tokens or ID of ERC-721 tokens to transfer.
      */
-    function transferFrom(
-        address from,
-        address to,
-        uint256 amountOrId
-    ) external returns (bool);
+    function transferFrom(address from, address to, uint256 amountOrId) external returns (bool);
 
     /**
      * @notice Transfers the ownership of an NFT from one address to another address
@@ -211,7 +170,7 @@ interface IERC7629  is IERC165 {
      * @param tokenId The NFT to transfer
      */
     function safeTransferFrom(address from, address to, uint256 tokenId) external;
-    
+
     /**
      * @dev Transfer ERC-20 tokens to an address.
      * @param to The address to transfer ERC-20 tokens to.

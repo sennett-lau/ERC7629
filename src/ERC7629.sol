@@ -5,7 +5,6 @@ import "./interfaces/IERC7629.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 
 abstract contract ERC7629 is IERC7629 {
-
     // ERC-721 related errors
     error ERC721InvalidApprover(address approver);
     error ERC721InvalidOperator(address operator);
@@ -148,10 +147,7 @@ abstract contract ERC7629 is IERC7629 {
      * @param owner The address of the token owner.
      * @param operator The address of the operator to check.
      */
-    function isApprovedForAll(
-        address owner,
-        address operator
-    ) public view returns (bool) {
+    function isApprovedForAll(address owner, address operator) public view returns (bool) {
         return _operatorApprovals[owner][operator];
     }
 
@@ -160,10 +156,7 @@ abstract contract ERC7629 is IERC7629 {
      * @param owner The address of the token owner.
      * @param spender The address of the spender.
      */
-    function allowance(
-        address owner,
-        address spender
-    ) public view returns (uint256) {
+    function allowance(address owner, address spender) public view returns (uint256) {
         return _allowances[owner][spender];
     }
 
@@ -188,11 +181,8 @@ abstract contract ERC7629 is IERC7629 {
      * @param spender The address of the spender.
      * @param amountOrId The amount of ERC-20 tokens or ID of ERC-721 tokens.
      */
-    function approve(
-        address spender,
-        uint256 amountOrId
-    ) external returns (bool) {
-        if ( amountOrId > 0 && amountOrId <= minted) {
+    function approve(address spender, uint256 amountOrId) external returns (bool) {
+        if (amountOrId > 0 && amountOrId <= minted) {
             _erc721Approve(spender, amountOrId);
         } else {
             return _erc20Approve(spender, amountOrId);
@@ -206,12 +196,9 @@ abstract contract ERC7629 is IERC7629 {
      * @param value The amount of tokens to be approved for spending.
      * @return True if the approval was successful.
      */
-    function _erc20Approve(
-        address spender,
-        uint256 value
-    ) internal returns (bool) {
+    function _erc20Approve(address spender, uint256 value) internal returns (bool) {
         if (spender == address(0)) {
-          revert ERC20InvalidSpender(spender);
+            revert ERC20InvalidSpender(spender);
         }
 
         _allowances[msg.sender][spender] = value;
@@ -268,15 +255,14 @@ abstract contract ERC7629 is IERC7629 {
 
         _operatorApprovals[msg.sender][operator] = approved;
         emit ApprovalForAll(msg.sender, operator, approved);
-
     }
 
     /**
-    * @dev Returns the address approved to transfer the given token ID.
-    * @param tokenId The ID of the token to query.
-    * @return The address approved to transfer the token.
-    * @notice Throws an error if the token does not exist.
-    */
+     * @dev Returns the address approved to transfer the given token ID.
+     * @param tokenId The ID of the token to query.
+     * @return The address approved to transfer the token.
+     * @notice Throws an error if the token does not exist.
+     */
     function getApproved(uint256 tokenId) public view virtual returns (address) {
         address owner = ownerOf(tokenId);
         if (owner == address(0)) {
@@ -286,36 +272,35 @@ abstract contract ERC7629 is IERC7629 {
     }
 
     /**
-    * @dev Transfers a token from one address to another, checking if the recipient is a smart contract.
-    * @param from The address to transfer the token from.
-    * @param to The address to transfer the token to.
-    * @param tokenId The ID of the token to transfer.
-    */
+     * @dev Transfers a token from one address to another, checking if the recipient is a smart contract.
+     * @param from The address to transfer the token from.
+     * @param to The address to transfer the token to.
+     * @param tokenId The ID of the token to transfer.
+     */
     function safeTransferFrom(address from, address to, uint256 tokenId) public {
         safeTransferFrom(from, to, tokenId, "");
     }
 
     /**
-    * @dev Transfers a token from one address to another, checking if the recipient is a smart contract.
-    * @param from The address to transfer the token from.
-    * @param to The address to transfer the token to.
-    * @param tokenId The ID of the token to transfer.
-    * @param data Additional data with no specified format, sent in call to `to`.
-    */
+     * @dev Transfers a token from one address to another, checking if the recipient is a smart contract.
+     * @param from The address to transfer the token from.
+     * @param to The address to transfer the token to.
+     * @param tokenId The ID of the token to transfer.
+     * @param data Additional data with no specified format, sent in call to `to`.
+     */
     function safeTransferFrom(address from, address to, uint256 tokenId, bytes memory data) public virtual {
         transferFrom(from, to, tokenId);
         _checkOnERC721Received(from, to, tokenId, data);
     }
 
-
     /**
-    * @dev Checks if the recipient is a smart contract by calling onERC721Received, if implemented.
-    * @param from The address from which the token is transferred.
-    * @param to The address to which the token is transferred.
-    * @param tokenId The ID of the token being transferred.
-    * @param data Additional data with no specified format, sent in call to `to`.
-    * @notice Throws an error if the recipient is a smart contract and does not implement onERC721Received.
-    */
+     * @dev Checks if the recipient is a smart contract by calling onERC721Received, if implemented.
+     * @param from The address from which the token is transferred.
+     * @param to The address to which the token is transferred.
+     * @param tokenId The ID of the token being transferred.
+     * @param data Additional data with no specified format, sent in call to `to`.
+     * @notice Throws an error if the recipient is a smart contract and does not implement onERC721Received.
+     */
     function _checkOnERC721Received(address from, address to, uint256 tokenId, bytes memory data) private {
         if (to.code.length > 0) {
             try IERC721Receiver(to).onERC721Received(msg.sender, from, tokenId, data) returns (bytes4 retval) {
@@ -342,11 +327,7 @@ abstract contract ERC7629 is IERC7629 {
      * @param amountOrId The amount of tokens (for ERC-20) or the ID of the NFT (for ERC-721) to transfer.
      * @return True if the transfer was successful.
      */
-    function transferFrom(
-        address from,
-        address to,
-        uint256 amountOrId
-    ) public returns (bool) {
+    function transferFrom(address from, address to, uint256 amountOrId) public returns (bool) {
         if (amountOrId <= minted) {
             _erc721TransferFrom(from, to, amountOrId);
         } else {
@@ -363,11 +344,7 @@ abstract contract ERC7629 is IERC7629 {
      * @param value The amount of tokens to transfer.
      * @return True if the transfer was successful.
      */
-    function _erc20TransferFrom(
-        address from,
-        address to,
-        uint256 value
-    ) internal returns (bool) {
+    function _erc20TransferFrom(address from, address to, uint256 value) internal returns (bool) {
         address spender = msg.sender;
 
         uint256 currentAllowance = allowance(from, spender);
@@ -400,12 +377,12 @@ abstract contract ERC7629 is IERC7629 {
     }
 
     /**
-    * @dev Updates ERC-20 token balances during a transfer.
-    * @param from The address from which tokens are transferred.
-    * @param to The address to which tokens are transferred.
-    * @param value The amount of ERC-20 tokens to transfer.
-    * @notice Handles minting and burning tokens, preventing overflow and emitting transfer events.
-    */
+     * @dev Updates ERC-20 token balances during a transfer.
+     * @param from The address from which tokens are transferred.
+     * @param to The address to which tokens are transferred.
+     * @param value The amount of ERC-20 tokens to transfer.
+     * @notice Handles minting and burning tokens, preventing overflow and emitting transfer events.
+     */
     function _updateERC20(address from, address to, uint256 value) internal virtual {
         if (from == address(0)) {
             // Overflow check required: The rest of the code assumes that totalSupply never overflows
@@ -442,11 +419,7 @@ abstract contract ERC7629 is IERC7629 {
      * @param to The address to transfer ERC-721 token to.
      * @param tokenId The ID of the ERC-721 token to transfer.
      */
-    function _erc721TransferFrom(
-        address from,
-        address to,
-        uint256 tokenId
-    ) internal {
+    function _erc721TransferFrom(address from, address to, uint256 tokenId) internal {
         if (to == address(0)) {
             revert ERC721InvalidReceiver(address(0));
         }
@@ -460,12 +433,12 @@ abstract contract ERC7629 is IERC7629 {
     }
 
     /**
-    * @dev Updates the ownership of an ERC-721 token during a transfer.
-    * @param to The address to which the token is being transferred.
-    * @param tokenId The ID of the ERC-721 token being transferred.
-    * @return The address from which the token is transferred.
-    * @notice Clears approval, updates balances, and emits transfer events.
-    */
+     * @dev Updates the ownership of an ERC-721 token during a transfer.
+     * @param to The address to which the token is being transferred.
+     * @param tokenId The ID of the ERC-721 token being transferred.
+     * @return The address from which the token is transferred.
+     * @notice Clears approval, updates balances, and emits transfer events.
+     */
     function _updateERC721(address to, uint256 tokenId) internal virtual returns (address) {
         address from = ownerOf(tokenId);
 
@@ -484,7 +457,6 @@ abstract contract ERC7629 is IERC7629 {
                 _ownedIndex[updatedId] = _ownedIndex[tokenId];
             }
             _owned[from].pop();
-            
         }
 
         if (to != address(0)) {
@@ -505,12 +477,12 @@ abstract contract ERC7629 is IERC7629 {
     }
 
     /**
-    * @dev Transfers ERC-20 tokens from one address to another.
-    * @param to The address to transfer the tokens to.
-    * @param amount The amount of ERC-20 tokens to transfer.
-    * @return A boolean indicating success.
-    * @notice Prevents burning tokens to address(0).
-    */
+     * @dev Transfers ERC-20 tokens from one address to another.
+     * @param to The address to transfer the tokens to.
+     * @param amount The amount of ERC-20 tokens to transfer.
+     * @return A boolean indicating success.
+     * @notice Prevents burning tokens to address(0).
+     */
     function transfer(address to, uint256 amount) external returns (bool) {
         // Prevent burning tokens to 0x0.
         if (to == address(0)) {
@@ -522,11 +494,11 @@ abstract contract ERC7629 is IERC7629 {
     }
 
     /**
-    * @dev Mints new ERC-20 tokens to the specified account.
-    * @param account The account to which new ERC-20 tokens are minted.
-    * @param value The amount of ERC-20 tokens to mint.
-    * @notice Prevents minting tokens to address(0).
-    */
+     * @dev Mints new ERC-20 tokens to the specified account.
+     * @param account The account to which new ERC-20 tokens are minted.
+     * @param value The amount of ERC-20 tokens to mint.
+     * @notice Prevents minting tokens to address(0).
+     */
     function _mintERC20(address account, uint256 value) internal {
         if (account == address(0)) {
             revert ERC20InvalidReceiver(address(0));
@@ -534,13 +506,12 @@ abstract contract ERC7629 is IERC7629 {
         _updateERC20(address(0), account, value);
     }
 
-
     /**
-    * @dev Burns ERC-20 tokens from the specified account.
-    * @param account The account from which ERC-20 tokens are burned.
-    * @param value The amount of ERC-20 tokens to burn.
-    * @notice Prevents burning tokens from address(0).
-    */
+     * @dev Burns ERC-20 tokens from the specified account.
+     * @param account The account from which ERC-20 tokens are burned.
+     * @param value The amount of ERC-20 tokens to burn.
+     * @notice Prevents burning tokens from address(0).
+     */
     function _burnERC20(address account, uint256 value) internal {
         if (account == address(0)) {
             revert ERC20InvalidSender(address(0));
@@ -583,7 +554,7 @@ abstract contract ERC7629 is IERC7629 {
         address to = address(this);
 
         _erc721TransferFrom(from, to, tokenId);
-        _mintERC20(from , _units);
+        _mintERC20(from, _units);
         emit ERC721ToERC20(to, tokenId, _units);
     }
 
@@ -592,18 +563,17 @@ abstract contract ERC7629 is IERC7629 {
      * @param amount The amount of ERC-20 tokens to convert.
      */
     function erc20ToERC721(uint256 amount) external {
-
         uint256 nftAmount = amount / _units;
         uint256 ftAmount = nftAmount * _units;
 
         _burnERC20(msg.sender, ftAmount);
 
-        uint256 nftMintAmount = _owned[address(this)].length < nftAmount ? nftAmount-_owned[address(this)].length : 0;
-        uint256 nftTransferAmount= nftAmount - nftMintAmount;
+        uint256 nftMintAmount = _owned[address(this)].length < nftAmount ? nftAmount - _owned[address(this)].length : 0;
+        uint256 nftTransferAmount = nftAmount - nftMintAmount;
 
-        uint256[] memory tokenIds= new uint256[](nftAmount);
+        uint256[] memory tokenIds = new uint256[](nftAmount);
 
-        for (uint256 i=0; i<nftMintAmount; i++){
+        for (uint256 i = 0; i < nftMintAmount; i++) {
             unchecked {
                 minted++;
             }
@@ -611,11 +581,11 @@ abstract contract ERC7629 is IERC7629 {
             _mintERC721(msg.sender, tokenId);
             tokenIds[i] = tokenId;
         }
-        
-        for (uint256 i=0; i<nftTransferAmount; i++){
-            uint256 tokenId=_owned[address(this)][_owned[address(this)].length - 1];
+
+        for (uint256 i = 0; i < nftTransferAmount; i++) {
+            uint256 tokenId = _owned[address(this)][_owned[address(this)].length - 1];
             _updateERC721(msg.sender, tokenId);
-            tokenIds[i+nftMintAmount] = tokenId;
+            tokenIds[i + nftMintAmount] = tokenId;
         }
         emit ERC20ToERC721(msg.sender, ftAmount, tokenIds);
     }
@@ -624,7 +594,7 @@ abstract contract ERC7629 is IERC7629 {
      * @dev Retrieves the unit value associated with the token.
      * @return The unit value.
      */
-    function getUnit() external view returns (uint256){
+    function getUnit() external view returns (uint256) {
         return _units;
     }
 
@@ -633,12 +603,7 @@ abstract contract ERC7629 is IERC7629 {
      * @param interfaceId The interface identifier.
      * @return True if the contract supports the given interface, false otherwise.
      */
-    function supportsInterface(
-        bytes4 interfaceId
-    ) public view virtual returns (bool) {
-        return
-        interfaceId == type(IERC7629).interfaceId ||
-        interfaceId == type(IERC165).interfaceId;
+    function supportsInterface(bytes4 interfaceId) public view virtual returns (bool) {
+        return interfaceId == type(IERC7629).interfaceId || interfaceId == type(IERC165).interfaceId;
     }
-
 }
