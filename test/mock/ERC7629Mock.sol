@@ -22,4 +22,12 @@ contract ERC7629Mock is Ownable, ERC7629 {
     function tokenURI(uint256 id_) public pure override returns (string memory) {
         return string.concat("https://example.com/token/", Strings.toString(id_));
     }
+
+    function erc721Approve(address spender_, uint256 id_) public {
+        _erc721Approve(spender_, id_);
+    }
+
+    function erc721TransferFrom(address from_, address to_, uint256 id_) public {
+        _erc721TransferFrom(from_, to_, id_);
+    }
 }

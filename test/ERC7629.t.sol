@@ -270,4 +270,171 @@ contract ERC7629Test is Test {
         balance = erc7629.balanceOf(address(0x1));
         assertEq(balance, amountToMint);
     }
+
+    /* %=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*& */
+    /*                        ERC721 functions                      */
+    /* %=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*& */
+
+    function test_erc721_total_supply() public {
+        uint256 totalSupply = erc7629.erc721TotalSupply();
+        uint256 expectedTotalSupply = 0;
+        assertEq(totalSupply, expectedTotalSupply);
+
+        uint256 tokenId = 1;
+        erc7629.mintERC721(address(0x1), tokenId);
+
+        totalSupply = erc7629.erc721TotalSupply();
+        expectedTotalSupply = 1;
+        assertEq(totalSupply, expectedTotalSupply);
+
+        tokenId = 2;
+        erc7629.mintERC721(address(0x1), tokenId);
+
+        totalSupply = erc7629.erc721TotalSupply();
+        expectedTotalSupply = 2;
+        assertEq(totalSupply, expectedTotalSupply);
+    }
+
+    function test_erc721_balance_of() public {
+        uint256 balance = erc7629.erc721BalanceOf(address(0x1));
+        uint256 expectedBalance = 0;
+        assertEq(balance, expectedBalance);
+
+        uint256 tokenId = 1;
+        erc7629.mintERC721(address(0x1), tokenId);
+
+        balance = erc7629.erc721BalanceOf(address(0x1));
+        expectedBalance = 1;
+        assertEq(balance, expectedBalance);
+
+        tokenId = 2;
+        erc7629.mintERC721(address(0x1), tokenId);
+
+        balance = erc7629.erc721BalanceOf(address(0x1));
+        expectedBalance = 2;
+        assertEq(balance, expectedBalance);
+    }
+
+    function test_erc721_owned() public {
+        uint256 tokenId = 1;
+        erc7629.mintERC721(address(0x1), tokenId);
+
+        uint256[] memory tokenIds = erc7629.owned(address(0x1));
+        assertEq(tokenIds.length, 1);
+        assertEq(tokenIds[0], tokenId);
+
+        tokenId = 2;
+        erc7629.mintERC721(address(0x1), tokenId);
+
+        tokenIds = erc7629.owned(address(0x1));
+        assertEq(tokenIds.length, 2);
+        assertEq(tokenIds[0], 1);
+        assertEq(tokenIds[1], 2);
+    }
+
+    function test_erc721_owner_of() public {
+        uint256 tokenId = 1;
+        address owner = address(0x1);
+        erc7629.mintERC721(owner, tokenId);
+
+        address tokenOwner = erc7629.ownerOf(tokenId);
+        assertEq(tokenOwner, owner);
+    }
+
+    function test_erc721_approve() public {
+        uint256 tokenId = 1;
+        address owner = address(0x1);
+        address spender = address(0x2);
+        erc7629.mintERC721(owner, tokenId);
+
+        address approved = erc7629.getApproved(tokenId);
+        assertEq(approved, address(0));
+
+        vm.prank(owner);
+        erc7629.erc721Approve(spender, tokenId);
+
+        approved = erc7629.getApproved(tokenId);
+        assertEq(approved, spender);
+    }
+
+    function test_set_approval_for_all() public {
+        address owner = address(0x1);
+        address operator = address(0x2);
+
+        bool isApproved = erc7629.isApprovedForAll(owner, operator);
+        assertEq(isApproved, false);
+
+        vm.prank(owner);
+        erc7629.setApprovalForAll(operator, true);
+
+        isApproved = erc7629.isApprovedForAll(owner, operator);
+        assertEq(isApproved, true);
+    }
+
+    function test_erc721_transfer_from() public {
+        address from = address(0x1);
+        address operator = address(0x2);
+        address to = address(0x3);
+
+        erc7629.mintERC721(from, 1);
+        erc7629.mintERC721(from, 2);
+        erc7629.mintERC721(from, 3);
+
+        uint256[] memory tokenIds = erc7629.owned(from);
+        assertEq(tokenIds.length, 3);
+        assertEq(tokenIds[0], 1);
+        assertEq(tokenIds[1], 2);
+        assertEq(tokenIds[2], 3);
+
+        uint256 totalSupply = erc7629.erc721TotalSupply();
+
+        assertEq(totalSupply, 3);
+
+        vm.prank(from);
+        erc7629.erc721TransferFrom(from, to, 1);
+
+        tokenIds = erc7629.owned(from);
+        assertEq(tokenIds.length, 2);
+        assertEq(tokenIds[0], 3);
+        assertEq(tokenIds[1], 2);
+
+        tokenIds = erc7629.owned(to);
+        assertEq(tokenIds.length, 1);
+        assertEq(tokenIds[0], 1);
+
+        vm.prank(from);
+        erc7629.erc721Approve(operator, 2);
+
+        assertEq(erc7629.getApproved(2), operator);
+
+        vm.prank(operator);
+        erc7629.erc721TransferFrom(from, to, 2);
+
+        tokenIds = erc7629.owned(from);
+        assertEq(tokenIds.length, 1);
+        assertEq(tokenIds[0], 3);
+
+        tokenIds = erc7629.owned(to);
+        assertEq(tokenIds.length, 2);
+        assertEq(tokenIds[0], 1);
+        assertEq(tokenIds[1], 2);
+
+        vm.prank(from);
+        erc7629.setApprovalForAll(operator, true);
+
+        vm.prank(from);
+        assertEq(erc7629.isApprovedForAll(from, operator), true);
+
+        vm.prank(operator);
+        erc7629.erc721TransferFrom(from, to, 3);
+
+        tokenIds = erc7629.owned(from);
+        assertEq(tokenIds.length, 0);
+
+        tokenIds = erc7629.owned(to);
+        assertEq(tokenIds.length, 3);
+        assertEq(tokenIds[0], 1);
+        assertEq(tokenIds[1], 2);
+        assertEq(tokenIds[2], 3);
+    }
 }
