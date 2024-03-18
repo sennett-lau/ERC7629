@@ -31,13 +31,13 @@
             <td class="headerValue">lcov.info</td>
             <td></td>
             <td class="headerItem">Lines:</td>
-            <td class="headerCovTableEntry">132</td>
+            <td class="headerCovTableEntry">133</td>
             <td class="headerCovTableEntry">137</td>
-            <td class="headerCovTableEntryHi">96.4 %</td>
+            <td class="headerCovTableEntryHi">97.1 %</td>
           </tr>
           <tr>
             <td class="headerItem">Date:</td>
-            <td class="headerValue">2024-03-18 19:25:50</td>
+            <td class="headerValue">2024-03-18 19:35:45</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntry">36</td>
@@ -49,9 +49,9 @@
             <td></td>
             <td></td>
             <td class="headerItem">Branches:</td>
-            <td class="headerCovTableEntry">49</td>
+            <td class="headerCovTableEntry">50</td>
             <td class="headerCovTableEntry">56</td>
-            <td class="headerCovTableEntryMed">87.5 %</td>
+            <td class="headerCovTableEntryMed">89.3 %</td>
           </tr>
           <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
         </table>
@@ -244,7 +244,7 @@
 <a name="173"><span class="lineNum">     173 </span>                :            :      * @param tokenId The token ID.</a>
 <a name="174"><span class="lineNum">     174 </span>                :            :      */</a>
 <a name="175"><span class="lineNum">     175 </span>                :            :     function ownerOf(uint256 tokenId) public view returns (address erc721Owner) {</a>
-<a name="176"><span class="lineNum">     176 </span>                :<span class="lineCov">        146 :         return _owners[tokenId];</span></a>
+<a name="176"><span class="lineNum">     176 </span>                :<span class="lineCov">        148 :         return _owners[tokenId];</span></a>
 <a name="177"><span class="lineNum">     177 </span>                :            :     }</a>
 <a name="178"><span class="lineNum">     178 </span>                :            : </a>
 <a name="179"><span class="lineNum">     179 </span>                :            :     /**</a>
@@ -399,8 +399,8 @@
 <a name="328"><span class="lineNum">     328 </span>                :            :      * @return True if the transfer was successful.</a>
 <a name="329"><span class="lineNum">     329 </span>                :            :      */</a>
 <a name="330"><span class="lineNum">     330 </span>                :            :     function transferFrom(address from, address to, uint256 amountOrId) public returns (bool) {</a>
-<a name="331"><span class="lineNum">     331 </span>        [<span class="branchCov" title="Branch 0 was taken 5 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">         12 :         if (amountOrId &lt;= minted) {</span></a>
-<a name="332"><span class="lineNum">     332 </span>                :<span class="lineCov">         10 :             _erc721TransferFrom(from, to, amountOrId);</span></a>
+<a name="331"><span class="lineNum">     331 </span>        [<span class="branchCov" title="Branch 0 was taken 6 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">         14 :         if (amountOrId &lt;= minted) {</span></a>
+<a name="332"><span class="lineNum">     332 </span>                :<span class="lineCov">         12 :             _erc721TransferFrom(from, to, amountOrId);</span></a>
 <a name="333"><span class="lineNum">     333 </span>                :            :         } else {</a>
 <a name="334"><span class="lineNum">     334 </span>                :<span class="lineCov">          3 :             return _erc20TransferFrom(from, to, amountOrId);</span></a>
 <a name="335"><span class="lineNum">     335 </span>                :            :         }</a>
@@ -491,8 +491,8 @@
 <a name="420"><span class="lineNum">     420 </span>                :            :      * @param tokenId The ID of the ERC-721 token to transfer.</a>
 <a name="421"><span class="lineNum">     421 </span>                :            :      */</a>
 <a name="422"><span class="lineNum">     422 </span>                :            :     function _erc721TransferFrom(address from, address to, uint256 tokenId) internal {</a>
-<a name="423"><span class="lineNum">     423 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchCov" title="Branch 1 was taken 15 times"> + </span>]:<span class="lineCov">         45 :         if (to == address(0)) {</span></a>
-<a name="424"><span class="lineNum">     424 </span>                :<span class="lineNoCov">          0 :             revert ERC721InvalidReceiver(address(0));</span></a>
+<a name="423"><span class="lineNum">     423 </span>        [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchCov" title="Branch 1 was taken 15 times"> + </span>]:<span class="lineCov">         48 :         if (to == address(0)) {</span></a>
+<a name="424"><span class="lineNum">     424 </span>                :<span class="lineCov">          2 :             revert ERC721InvalidReceiver(address(0));</span></a>
 <a name="425"><span class="lineNum">     425 </span>                :            :         }</a>
 <a name="426"><span class="lineNum">     426 </span>                :            : </a>
 <a name="427"><span class="lineNum">     427 </span>                :<span class="lineCov">         45 :         address previousOwner = _updateERC721(to, tokenId);</span></a>
@@ -511,10 +511,10 @@
 <a name="440"><span class="lineNum">     440 </span>                :            :      * @notice Clears approval, updates balances, and emits transfer events.</a>
 <a name="441"><span class="lineNum">     441 </span>                :            :      */</a>
 <a name="442"><span class="lineNum">     442 </span>                :            :     function _updateERC721(address to, uint256 tokenId) internal virtual returns (address) {</a>
-<a name="443"><span class="lineNum">     443 </span>                :<span class="lineCov">        165 :         address from = ownerOf(tokenId);</span></a>
+<a name="443"><span class="lineNum">     443 </span>                :<span class="lineCov">        168 :         address from = ownerOf(tokenId);</span></a>
 <a name="444"><span class="lineNum">     444 </span>                :            : </a>
 <a name="445"><span class="lineNum">     445 </span>                :            :         // Execute the update</a>
-<a name="446"><span class="lineNum">     446 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchCov" title="Branch 1 was taken 21 times"> + </span>]:<span class="lineCov">        165 :         if (from != address(0)) {</span></a>
+<a name="446"><span class="lineNum">     446 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchCov" title="Branch 1 was taken 21 times"> + </span>]:<span class="lineCov">        168 :         if (from != address(0)) {</span></a>
 <a name="447"><span class="lineNum">     447 </span>                :            :             // Clear approval. No need to re-authorize or emit the Approval event</a>
 <a name="448"><span class="lineNum">     448 </span>                :<span class="lineCov">         42 :             _approveERC721(address(0), tokenId, address(0), false);</span></a>
 <a name="449"><span class="lineNum">     449 </span>                :            : </a>
@@ -530,21 +530,21 @@
 <a name="459"><span class="lineNum">     459 </span>                :<span class="lineCov">         42 :             _owned[from].pop();</span></a>
 <a name="460"><span class="lineNum">     460 </span>                :            :         }</a>
 <a name="461"><span class="lineNum">     461 </span>                :            : </a>
-<a name="462"><span class="lineNum">     462 </span>        [<span class="branchCov" title="Branch 0 was taken 53 times"> + </span><span class="branchCov" title="Branch 1 was taken 55 times"> + </span>]:<span class="lineCov">        165 :         if (to != address(0)) {</span></a>
+<a name="462"><span class="lineNum">     462 </span>        [<span class="branchCov" title="Branch 0 was taken 54 times"> + </span><span class="branchCov" title="Branch 1 was taken 56 times"> + </span>]:<span class="lineCov">        168 :         if (to != address(0)) {</span></a>
 <a name="463"><span class="lineNum">     463 </span>                :            :             unchecked {</a>
-<a name="464"><span class="lineNum">     464 </span>                :<span class="lineCov">        106 :                 _erc721BalanceOf[to] += 1;</span></a>
+<a name="464"><span class="lineNum">     464 </span>                :<span class="lineCov">        108 :                 _erc721BalanceOf[to] += 1;</span></a>
 <a name="465"><span class="lineNum">     465 </span>                :            :             }</a>
 <a name="466"><span class="lineNum">     466 </span>                :            : </a>
-<a name="467"><span class="lineNum">     467 </span>                :<span class="lineCov">        106 :             _owned[to].push(tokenId);</span></a>
-<a name="468"><span class="lineNum">     468 </span>                :<span class="lineCov">        106 :             _ownedIndex[tokenId] = _owned[to].length - 1;</span></a>
+<a name="467"><span class="lineNum">     467 </span>                :<span class="lineCov">        108 :             _owned[to].push(tokenId);</span></a>
+<a name="468"><span class="lineNum">     468 </span>                :<span class="lineCov">        108 :             _ownedIndex[tokenId] = _owned[to].length - 1;</span></a>
 <a name="469"><span class="lineNum">     469 </span>                :            :         }</a>
 <a name="470"><span class="lineNum">     470 </span>                :            : </a>
-<a name="471"><span class="lineNum">     471 </span>                :<span class="lineCov">        110 :         _owners[tokenId] = to;</span></a>
+<a name="471"><span class="lineNum">     471 </span>                :<span class="lineCov">        112 :         _owners[tokenId] = to;</span></a>
 <a name="472"><span class="lineNum">     472 </span>                :            : </a>
-<a name="473"><span class="lineNum">     473 </span>                :<span class="lineCov">        110 :         emit ERC721Transfer(from, to, tokenId);</span></a>
-<a name="474"><span class="lineNum">     474 </span>                :<span class="lineCov">        110 :         emit Transfer(from, to, tokenId);</span></a>
+<a name="473"><span class="lineNum">     473 </span>                :<span class="lineCov">        112 :         emit ERC721Transfer(from, to, tokenId);</span></a>
+<a name="474"><span class="lineNum">     474 </span>                :<span class="lineCov">        112 :         emit Transfer(from, to, tokenId);</span></a>
 <a name="475"><span class="lineNum">     475 </span>                :            : </a>
-<a name="476"><span class="lineNum">     476 </span>                :<span class="lineCov">        110 :         return from;</span></a>
+<a name="476"><span class="lineNum">     476 </span>                :<span class="lineCov">        112 :         return from;</span></a>
 <a name="477"><span class="lineNum">     477 </span>                :            :     }</a>
 <a name="478"><span class="lineNum">     478 </span>                :            : </a>
 <a name="479"><span class="lineNum">     479 </span>                :            :     /**</a>
@@ -596,15 +596,15 @@
 <a name="525"><span class="lineNum">     525 </span>                :            :      * @param tokenId The ID of the ERC-721 token to be minted.</a>
 <a name="526"><span class="lineNum">     526 </span>                :            :      */</a>
 <a name="527"><span class="lineNum">     527 </span>                :            :     function _mintERC721(address to, uint256 tokenId) internal {</a>
-<a name="528"><span class="lineNum">     528 </span>        [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchCov" title="Branch 1 was taken 33 times"> + </span>]:<span class="lineCov">        102 :         if (to == address(0)) {</span></a>
+<a name="528"><span class="lineNum">     528 </span>        [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchCov" title="Branch 1 was taken 34 times"> + </span>]:<span class="lineCov">        105 :         if (to == address(0)) {</span></a>
 <a name="529"><span class="lineNum">     529 </span>                :<span class="lineCov">          2 :             revert ERC721InvalidReceiver(address(0));</span></a>
 <a name="530"><span class="lineNum">     530 </span>                :            :         }</a>
-<a name="531"><span class="lineNum">     531 </span>                :<span class="lineCov">         99 :         address previousOwner = _updateERC721(to, tokenId);</span></a>
-<a name="532"><span class="lineNum">     532 </span>        [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchCov" title="Branch 1 was taken 32 times"> + </span>]:<span class="lineCov">         99 :         if (previousOwner != address(0)) {</span></a>
+<a name="531"><span class="lineNum">     531 </span>                :<span class="lineCov">        102 :         address previousOwner = _updateERC721(to, tokenId);</span></a>
+<a name="532"><span class="lineNum">     532 </span>        [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchCov" title="Branch 1 was taken 33 times"> + </span>]:<span class="lineCov">        102 :         if (previousOwner != address(0)) {</span></a>
 <a name="533"><span class="lineNum">     533 </span>                :<span class="lineCov">          2 :             revert ERC721InvalidSender(address(0));</span></a>
 <a name="534"><span class="lineNum">     534 </span>                :            :         }</a>
 <a name="535"><span class="lineNum">     535 </span>                :            :         unchecked {</a>
-<a name="536"><span class="lineNum">     536 </span>                :<span class="lineCov">         64 :             minted++;</span></a>
+<a name="536"><span class="lineNum">     536 </span>                :<span class="lineCov">         66 :             minted++;</span></a>
 <a name="537"><span class="lineNum">     537 </span>                :            :         }</a>
 <a name="538"><span class="lineNum">     538 </span>                :            :     }</a>
 <a name="539"><span class="lineNum">     539 </span>                :            : </a>

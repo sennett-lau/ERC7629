@@ -258,6 +258,24 @@ contract ERC7629Test is Test {
         assertEq(ownedTokenIds.length, 0);
     }
 
+    function test_erc721_transfer_flow_with_invalid_receiver_reverts() public {
+        uint256 tokenId = 1;
+        address user = address(0x1);
+        address spender = address(0x2);
+
+        // mint erc271
+        erc7629.mintERC721(user, tokenId);
+
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                ERC7629.ERC721InvalidReceiver.selector,
+                address(0)
+            )
+        );
+        vm.prank(spender);
+        erc7629.transferFrom(user, address(0), tokenId);
+    }
+
     // the following tests handles ERC7629 functions that implements ERC20
     // as the transfer flow includes, minting, approving and transferring
     // the approve implements _erc20TransferFrom
