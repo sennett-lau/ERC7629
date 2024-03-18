@@ -207,6 +207,21 @@ contract ERC7629Test is Test {
         erc7629.erc20ToERC721(amountToConvert);
     }
 
+    function test_transfer_from_erc20_invalid_receiver_reverts() public {
+        erc7629.mintERC20(address(0x1), 10_000);
+
+        vm.prank(address(0x1));
+        erc7629.approve(address(this), 10_000);
+
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                ERC7629.ERC20InvalidReceiver.selector,
+                address(0)
+            )
+        );
+        erc7629.transferFrom(address(0x1), address(0), 10_000);
+    }
+
     // the following tests handles ERC7629 functions that implements ERC721
     // as the transfer flow includes, minting, approving and transferring
     // the approve implements _erc721TransferFrom
@@ -429,6 +444,17 @@ contract ERC7629Test is Test {
         );
         vm.prank(address(0x1));
         erc7629.transfer(address(0x2), amountToMint + 1);
+    }
+
+    function test_transfer_from_0_reverts() public {
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                ERC7629.ERC20InvalidSender.selector,
+                address(0)
+            )
+        );
+        vm.prank(address(0));
+        erc7629.transfer(address(0x1), 10_000);
     }
 
     function test_transfer_to_0_reverts() public {

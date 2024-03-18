@@ -6,10 +6,12 @@ import "@openzeppelin/contracts/utils/Strings.sol";
 import "../../src/ERC7629.sol";
 
 contract ERC7629Mock is Ownable, ERC7629 {
-    constructor(string memory name_, string memory symbol_, uint8 decimals_, uint256 units_)
-        ERC7629(name_, symbol_, decimals_, units_)
-        Ownable(msg.sender)
-    {}
+    constructor(
+        string memory name_,
+        string memory symbol_,
+        uint8 decimals_,
+        uint256 units_
+    ) ERC7629(name_, symbol_, decimals_, units_) Ownable(msg.sender) {}
 
     function mintERC20(address to_, uint256 amount_) public {
         _mintERC20(to_, amount_);
@@ -27,15 +29,22 @@ contract ERC7629Mock is Ownable, ERC7629 {
         _burnERC721(id_);
     }
 
-    function tokenURI(uint256 id_) public pure override returns (string memory) {
-        return string.concat("https://example.com/token/", Strings.toString(id_));
+    function tokenURI(
+        uint256 id_
+    ) public pure override returns (string memory) {
+        return
+            string.concat("https://example.com/token/", Strings.toString(id_));
     }
 
     function erc721Approve(address spender_, uint256 id_) public {
         _erc721Approve(spender_, id_);
     }
 
-    function erc721TransferFrom(address from_, address to_, uint256 id_) public {
+    function erc721TransferFrom(
+        address from_,
+        address to_,
+        uint256 id_
+    ) public {
         _erc721TransferFrom(from_, to_, id_);
     }
 
@@ -43,7 +52,11 @@ contract ERC7629Mock is Ownable, ERC7629 {
         _erc20Approve(spender_, amount_);
     }
 
-    function erc20TransferFrom(address from_, address to_, uint256 amount_) public {
+    function erc20TransferFrom(
+        address from_,
+        address to_,
+        uint256 amount_
+    ) public {
         _erc20TransferFrom(from_, to_, amount_);
     }
 }

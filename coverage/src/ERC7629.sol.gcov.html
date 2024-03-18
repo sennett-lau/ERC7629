@@ -32,12 +32,12 @@
             <td></td>
             <td class="headerItem">Lines:</td>
             <td class="headerCovTableEntry">135</td>
-            <td class="headerCovTableEntry">137</td>
-            <td class="headerCovTableEntryHi">98.5 %</td>
+            <td class="headerCovTableEntry">135</td>
+            <td class="headerCovTableEntryHi">100.0 %</td>
           </tr>
           <tr>
             <td class="headerItem">Date:</td>
-            <td class="headerValue">2024-03-18 19:41:50</td>
+            <td class="headerValue">2024-03-19 02:01:54</td>
             <td></td>
             <td class="headerItem">Functions:</td>
             <td class="headerCovTableEntry">36</td>
@@ -50,8 +50,8 @@
             <td></td>
             <td class="headerItem">Branches:</td>
             <td class="headerCovTableEntry">51</td>
-            <td class="headerCovTableEntry">56</td>
-            <td class="headerCovTableEntryHi">91.1 %</td>
+            <td class="headerCovTableEntry">54</td>
+            <td class="headerCovTableEntryHi">94.4 %</td>
           </tr>
           <tr><td><img src="../glass.png" width=3 height=3 alt=""></td></tr>
         </table>
@@ -228,7 +228,7 @@
 <a name="157"><span class="lineNum">     157 </span>                :            :      * @param spender The address of the spender.</a>
 <a name="158"><span class="lineNum">     158 </span>                :            :      */</a>
 <a name="159"><span class="lineNum">     159 </span>                :            :     function allowance(address owner, address spender) public view returns (uint256) {</a>
-<a name="160"><span class="lineNum">     160 </span>                :<span class="lineCov">         12 :         return _allowances[owner][spender];</span></a>
+<a name="160"><span class="lineNum">     160 </span>                :<span class="lineCov">         14 :         return _allowances[owner][spender];</span></a>
 <a name="161"><span class="lineNum">     161 </span>                :            :     }</a>
 <a name="162"><span class="lineNum">     162 </span>                :            : </a>
 <a name="163"><span class="lineNum">     163 </span>                :            :     /**</a>
@@ -253,10 +253,10 @@
 <a name="182"><span class="lineNum">     182 </span>                :            :      * @param amountOrId The amount of ERC-20 tokens or ID of ERC-721 tokens.</a>
 <a name="183"><span class="lineNum">     183 </span>                :            :      */</a>
 <a name="184"><span class="lineNum">     184 </span>                :            :     function approve(address spender, uint256 amountOrId) external returns (bool) {</a>
-<a name="185"><span class="lineNum">     185 </span>        [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">          8 :         if (amountOrId &gt; 0 &amp;&amp; amountOrId &lt;= minted) {</span></a>
+<a name="185"><span class="lineNum">     185 </span>        [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchCov" title="Branch 1 was taken 2 times"> + </span>]:<span class="lineCov">         12 :         if (amountOrId &gt; 0 &amp;&amp; amountOrId &lt;= minted) {</span></a>
 <a name="186"><span class="lineNum">     186 </span>                :<span class="lineCov">          2 :             _erc721Approve(spender, amountOrId);</span></a>
 <a name="187"><span class="lineNum">     187 </span>                :            :         } else {</a>
-<a name="188"><span class="lineNum">     188 </span>                :<span class="lineCov">          3 :             return _erc20Approve(spender, amountOrId);</span></a>
+<a name="188"><span class="lineNum">     188 </span>                :<span class="lineCov">          6 :             return _erc20Approve(spender, amountOrId);</span></a>
 <a name="189"><span class="lineNum">     189 </span>                :            :         }</a>
 <a name="190"><span class="lineNum">     190 </span>                :<span class="lineCov">          2 :         return true;</span></a>
 <a name="191"><span class="lineNum">     191 </span>                :            :     }</a>
@@ -268,16 +268,16 @@
 <a name="197"><span class="lineNum">     197 </span>                :            :      * @return True if the approval was successful.</a>
 <a name="198"><span class="lineNum">     198 </span>                :            :      */</a>
 <a name="199"><span class="lineNum">     199 </span>                :            :     function _erc20Approve(address spender, uint256 value) internal returns (bool) {</a>
-<a name="200"><span class="lineNum">     200 </span>        [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchCov" title="Branch 1 was taken 3 times"> + </span>]:<span class="lineCov">         12 :         if (spender == address(0)) {</span></a>
+<a name="200"><span class="lineNum">     200 </span>        [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchCov" title="Branch 1 was taken 4 times"> + </span>]:<span class="lineCov">         15 :         if (spender == address(0)) {</span></a>
 <a name="201"><span class="lineNum">     201 </span>                :<span class="lineCov">          2 :             revert ERC20InvalidSpender(spender);</span></a>
 <a name="202"><span class="lineNum">     202 </span>                :            :         }</a>
 <a name="203"><span class="lineNum">     203 </span>                :            : </a>
-<a name="204"><span class="lineNum">     204 </span>                :<span class="lineCov">          6 :         _allowances[msg.sender][spender] = value;</span></a>
+<a name="204"><span class="lineNum">     204 </span>                :<span class="lineCov">          8 :         _allowances[msg.sender][spender] = value;</span></a>
 <a name="205"><span class="lineNum">     205 </span>                :            : </a>
-<a name="206"><span class="lineNum">     206 </span>                :<span class="lineCov">          6 :         emit Approval(msg.sender, spender, value);</span></a>
-<a name="207"><span class="lineNum">     207 </span>                :<span class="lineCov">          6 :         emit ERC20Approval(msg.sender, spender, value);</span></a>
+<a name="206"><span class="lineNum">     206 </span>                :<span class="lineCov">          8 :         emit Approval(msg.sender, spender, value);</span></a>
+<a name="207"><span class="lineNum">     207 </span>                :<span class="lineCov">          8 :         emit ERC20Approval(msg.sender, spender, value);</span></a>
 <a name="208"><span class="lineNum">     208 </span>                :            : </a>
-<a name="209"><span class="lineNum">     209 </span>                :<span class="lineCov">          6 :         return true;</span></a>
+<a name="209"><span class="lineNum">     209 </span>                :<span class="lineCov">          8 :         return true;</span></a>
 <a name="210"><span class="lineNum">     210 </span>                :            :     }</a>
 <a name="211"><span class="lineNum">     211 </span>                :            : </a>
 <a name="212"><span class="lineNum">     212 </span>                :            :     /**</a>
@@ -399,10 +399,10 @@
 <a name="328"><span class="lineNum">     328 </span>                :            :      * @return True if the transfer was successful.</a>
 <a name="329"><span class="lineNum">     329 </span>                :            :      */</a>
 <a name="330"><span class="lineNum">     330 </span>                :            :     function transferFrom(address from, address to, uint256 amountOrId) public returns (bool) {</a>
-<a name="331"><span class="lineNum">     331 </span>        [<span class="branchCov" title="Branch 0 was taken 6 times"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">         14 :         if (amountOrId &lt;= minted) {</span></a>
+<a name="331"><span class="lineNum">     331 </span>        [<span class="branchCov" title="Branch 0 was taken 6 times"> + </span><span class="branchCov" title="Branch 1 was taken 2 times"> + </span>]:<span class="lineCov">         16 :         if (amountOrId &lt;= minted) {</span></a>
 <a name="332"><span class="lineNum">     332 </span>                :<span class="lineCov">         12 :             _erc721TransferFrom(from, to, amountOrId);</span></a>
 <a name="333"><span class="lineNum">     333 </span>                :            :         } else {</a>
-<a name="334"><span class="lineNum">     334 </span>                :<span class="lineCov">          3 :             return _erc20TransferFrom(from, to, amountOrId);</span></a>
+<a name="334"><span class="lineNum">     334 </span>                :<span class="lineCov">          6 :             return _erc20TransferFrom(from, to, amountOrId);</span></a>
 <a name="335"><span class="lineNum">     335 </span>                :            :         }</a>
 <a name="336"><span class="lineNum">     336 </span>                :            : </a>
 <a name="337"><span class="lineNum">     337 </span>                :<span class="lineCov">         10 :         return true;</span></a>
@@ -416,18 +416,18 @@
 <a name="345"><span class="lineNum">     345 </span>                :            :      * @return True if the transfer was successful.</a>
 <a name="346"><span class="lineNum">     346 </span>                :            :      */</a>
 <a name="347"><span class="lineNum">     347 </span>                :            :     function _erc20TransferFrom(address from, address to, uint256 value) internal returns (bool) {</a>
-<a name="348"><span class="lineNum">     348 </span>                :<span class="lineCov">          6 :         address spender = msg.sender;</span></a>
+<a name="348"><span class="lineNum">     348 </span>                :<span class="lineCov">          8 :         address spender = msg.sender;</span></a>
 <a name="349"><span class="lineNum">     349 </span>                :            : </a>
-<a name="350"><span class="lineNum">     350 </span>                :<span class="lineCov">          9 :         uint256 currentAllowance = allowance(from, spender);</span></a>
-<a name="351"><span class="lineNum">     351 </span>        [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchCov" title="Branch 1 was taken 2 times"> + </span>]:<span class="lineCov">          6 :         if (currentAllowance != type(uint256).max) {</span></a>
-<a name="352"><span class="lineNum">     352 </span>        [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchCov" title="Branch 1 was taken 2 times"> + </span>]:<span class="lineCov">          6 :             if (currentAllowance &lt; value) {</span></a>
+<a name="350"><span class="lineNum">     350 </span>                :<span class="lineCov">         12 :         uint256 currentAllowance = allowance(from, spender);</span></a>
+<a name="351"><span class="lineNum">     351 </span>        [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchCov" title="Branch 1 was taken 3 times"> + </span>]:<span class="lineCov">          8 :         if (currentAllowance != type(uint256).max) {</span></a>
+<a name="352"><span class="lineNum">     352 </span>        [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchCov" title="Branch 1 was taken 3 times"> + </span>]:<span class="lineCov">          8 :             if (currentAllowance &lt; value) {</span></a>
 <a name="353"><span class="lineNum">     353 </span>                :<span class="lineCov">          2 :                 revert ERC20InsufficientAllowance(spender, currentAllowance, value);</span></a>
 <a name="354"><span class="lineNum">     354 </span>                :            :             }</a>
 <a name="355"><span class="lineNum">     355 </span>                :            :             unchecked {</a>
-<a name="356"><span class="lineNum">     356 </span>                :<span class="lineCov">          4 :                 _allowances[from][spender] = currentAllowance - value;</span></a>
+<a name="356"><span class="lineNum">     356 </span>                :<span class="lineCov">          6 :                 _allowances[from][spender] = currentAllowance - value;</span></a>
 <a name="357"><span class="lineNum">     357 </span>                :            :             }</a>
 <a name="358"><span class="lineNum">     358 </span>                :            :         }</a>
-<a name="359"><span class="lineNum">     359 </span>                :<span class="lineCov">          4 :         _transferERC20(from, to, value);</span></a>
+<a name="359"><span class="lineNum">     359 </span>                :<span class="lineCov">          6 :         _transferERC20(from, to, value);</span></a>
 <a name="360"><span class="lineNum">     360 </span>                :<span class="lineCov">          4 :         return true;</span></a>
 <a name="361"><span class="lineNum">     361 </span>                :            :     }</a>
 <a name="362"><span class="lineNum">     362 </span>                :            : </a>
@@ -438,11 +438,11 @@
 <a name="367"><span class="lineNum">     367 </span>                :            :      * @param value The amount of tokens to transfer.</a>
 <a name="368"><span class="lineNum">     368 </span>                :            :      */</a>
 <a name="369"><span class="lineNum">     369 </span>                :            :     function _transferERC20(address from, address to, uint256 value) internal {</a>
-<a name="370"><span class="lineNum">     370 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchCov" title="Branch 1 was taken 4 times"> + </span>]:<span class="lineCov">         12 :         if (from == address(0)) {</span></a>
-<a name="371"><span class="lineNum">     371 </span>                :<span class="lineNoCov">          0 :             revert ERC20InvalidSender(address(0));</span></a>
+<a name="370"><span class="lineNum">     370 </span>        [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchCov" title="Branch 1 was taken 6 times"> + </span>]:<span class="lineCov">         21 :         if (from == address(0)) {</span></a>
+<a name="371"><span class="lineNum">     371 </span>                :<span class="lineCov">          2 :             revert ERC20InvalidSender(address(0));</span></a>
 <a name="372"><span class="lineNum">     372 </span>                :            :         }</a>
-<a name="373"><span class="lineNum">     373 </span>        [<span class="branchNoExec" title="Branch 0 was not executed"> # </span><span class="branchCov" title="Branch 1 was taken 4 times"> + </span>]:<span class="lineCov">         12 :         if (to == address(0)) {</span></a>
-<a name="374"><span class="lineNum">     374 </span>                :<span class="lineNoCov">          0 :             revert ERC20InvalidReceiver(address(0));</span></a>
+<a name="373"><span class="lineNum">     373 </span>        [<span class="branchCov" title="Branch 0 was taken 2 times"> + </span><span class="branchCov" title="Branch 1 was taken 4 times"> + </span>]:<span class="lineCov">         18 :         if (to == address(0)) {</span></a>
+<a name="374"><span class="lineNum">     374 </span>                :<span class="lineCov">          4 :             revert ERC20InvalidReceiver(address(0));</span></a>
 <a name="375"><span class="lineNum">     375 </span>                :            :         }</a>
 <a name="376"><span class="lineNum">     376 </span>                :<span class="lineCov">          8 :         _updateERC20(from, to, value);</span></a>
 <a name="377"><span class="lineNum">     377 </span>                :            :     }</a>
@@ -455,9 +455,9 @@
 <a name="384"><span class="lineNum">     384 </span>                :            :      * @notice Handles minting and burning tokens, preventing overflow and emitting transfer events.</a>
 <a name="385"><span class="lineNum">     385 </span>                :            :      */</a>
 <a name="386"><span class="lineNum">     386 </span>                :            :     function _updateERC20(address from, address to, uint256 value) internal virtual {</a>
-<a name="387"><span class="lineNum">     387 </span>        [<span class="branchCov" title="Branch 0 was taken 21 times"> + </span><span class="branchCov" title="Branch 1 was taken 9 times"> + </span>]:<span class="lineCov">         90 :         if (from == address(0)) {</span></a>
+<a name="387"><span class="lineNum">     387 </span>        [<span class="branchCov" title="Branch 0 was taken 22 times"> + </span><span class="branchCov" title="Branch 1 was taken 9 times"> + </span>]:<span class="lineCov">         93 :         if (from == address(0)) {</span></a>
 <a name="388"><span class="lineNum">     388 </span>                :            :             // Overflow check required: The rest of the code assumes that totalSupply never overflows</a>
-<a name="389"><span class="lineNum">     389 </span>                :<span class="lineCov">         42 :             _totalSupply += value;</span></a>
+<a name="389"><span class="lineNum">     389 </span>                :<span class="lineCov">         44 :             _totalSupply += value;</span></a>
 <a name="390"><span class="lineNum">     390 </span>                :            :         } else {</a>
 <a name="391"><span class="lineNum">     391 </span>                :<span class="lineCov">         18 :             uint256 fromBalance = _erc20BalanceOf[from];</span></a>
 <a name="392"><span class="lineNum">     392 </span>        [<span class="branchCov" title="Branch 0 was taken 3 times"> + </span><span class="branchCov" title="Branch 1 was taken 6 times"> + </span>]:<span class="lineCov">         18 :             if (fromBalance &lt; value) {</span></a>
@@ -469,7 +469,7 @@
 <a name="398"><span class="lineNum">     398 </span>                :            :             }</a>
 <a name="399"><span class="lineNum">     399 </span>                :            :         }</a>
 <a name="400"><span class="lineNum">     400 </span>                :            : </a>
-<a name="401"><span class="lineNum">     401 </span>        [<span class="branchCov" title="Branch 0 was taken 3 times"> + </span><span class="branchCov" title="Branch 1 was taken 24 times"> + </span>]:<span class="lineCov">         81 :         if (to == address(0)) {</span></a>
+<a name="401"><span class="lineNum">     401 </span>        [<span class="branchCov" title="Branch 0 was taken 3 times"> + </span><span class="branchCov" title="Branch 1 was taken 25 times"> + </span>]:<span class="lineCov">         84 :         if (to == address(0)) {</span></a>
 <a name="402"><span class="lineNum">     402 </span>                :            :             unchecked {</a>
 <a name="403"><span class="lineNum">     403 </span>                :            :                 // Overflow not possible: value &lt;= totalSupply or value &lt;= fromBalance &lt;= totalSupply.</a>
 <a name="404"><span class="lineNum">     404 </span>                :<span class="lineCov">          6 :                 _totalSupply -= value;</span></a>
@@ -477,11 +477,11 @@
 <a name="406"><span class="lineNum">     406 </span>                :            :         } else {</a>
 <a name="407"><span class="lineNum">     407 </span>                :            :             unchecked {</a>
 <a name="408"><span class="lineNum">     408 </span>                :            :                 // Overflow not possible: balance + value is at most totalSupply, which we know fits into a uint256.</a>
-<a name="409"><span class="lineNum">     409 </span>                :<span class="lineCov">         48 :                 _erc20BalanceOf[to] += value;</span></a>
+<a name="409"><span class="lineNum">     409 </span>                :<span class="lineCov">         50 :                 _erc20BalanceOf[to] += value;</span></a>
 <a name="410"><span class="lineNum">     410 </span>                :            :             }</a>
 <a name="411"><span class="lineNum">     411 </span>                :            :         }</a>
 <a name="412"><span class="lineNum">     412 </span>                :            : </a>
-<a name="413"><span class="lineNum">     413 </span>                :<span class="lineCov">         54 :         emit ERC20Transfer(from, to, value);</span></a>
+<a name="413"><span class="lineNum">     413 </span>                :<span class="lineCov">         56 :         emit ERC20Transfer(from, to, value);</span></a>
 <a name="414"><span class="lineNum">     414 </span>                :            :     }</a>
 <a name="415"><span class="lineNum">     415 </span>                :            : </a>
 <a name="416"><span class="lineNum">     416 </span>                :            :     /**</a>
@@ -555,129 +555,124 @@
 <a name="484"><span class="lineNum">     484 </span>                :            :      * @notice Prevents burning tokens to address(0).</a>
 <a name="485"><span class="lineNum">     485 </span>                :            :      */</a>
 <a name="486"><span class="lineNum">     486 </span>                :            :     function transfer(address to, uint256 amount) external returns (bool) {</a>
-<a name="487"><span class="lineNum">     487 </span>                :            :         // Prevent burning tokens to 0x0.</a>
-<a name="488"><span class="lineNum">     488 </span>        [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchCov" title="Branch 1 was taken 2 times"> + </span>]:<span class="lineCov">          9 :         if (to == address(0)) {</span></a>
-<a name="489"><span class="lineNum">     489 </span>                :<span class="lineCov">          2 :             revert ERC20InvalidReceiver(to);</span></a>
-<a name="490"><span class="lineNum">     490 </span>                :            :         }</a>
-<a name="491"><span class="lineNum">     491 </span>                :            : </a>
-<a name="492"><span class="lineNum">     492 </span>                :<span class="lineCov">          4 :         _transferERC20(msg.sender, to, amount);</span></a>
-<a name="493"><span class="lineNum">     493 </span>                :<span class="lineCov">          2 :         return true;</span></a>
-<a name="494"><span class="lineNum">     494 </span>                :            :     }</a>
-<a name="495"><span class="lineNum">     495 </span>                :            : </a>
-<a name="496"><span class="lineNum">     496 </span>                :            :     /**</a>
-<a name="497"><span class="lineNum">     497 </span>                :            :      * @dev Mints new ERC-20 tokens to the specified account.</a>
-<a name="498"><span class="lineNum">     498 </span>                :            :      * @param account The account to which new ERC-20 tokens are minted.</a>
-<a name="499"><span class="lineNum">     499 </span>                :            :      * @param value The amount of ERC-20 tokens to mint.</a>
-<a name="500"><span class="lineNum">     500 </span>                :            :      * @notice Prevents minting tokens to address(0).</a>
-<a name="501"><span class="lineNum">     501 </span>                :            :      */</a>
-<a name="502"><span class="lineNum">     502 </span>                :            :     function _mintERC20(address account, uint256 value) internal {</a>
-<a name="503"><span class="lineNum">     503 </span>        [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchCov" title="Branch 1 was taken 21 times"> + </span>]:<span class="lineCov">         66 :         if (account == address(0)) {</span></a>
-<a name="504"><span class="lineNum">     504 </span>                :<span class="lineCov">          2 :             revert ERC20InvalidReceiver(address(0));</span></a>
-<a name="505"><span class="lineNum">     505 </span>                :            :         }</a>
-<a name="506"><span class="lineNum">     506 </span>                :<span class="lineCov">         42 :         _updateERC20(address(0), account, value);</span></a>
-<a name="507"><span class="lineNum">     507 </span>                :            :     }</a>
-<a name="508"><span class="lineNum">     508 </span>                :            : </a>
-<a name="509"><span class="lineNum">     509 </span>                :            :     /**</a>
-<a name="510"><span class="lineNum">     510 </span>                :            :      * @dev Burns ERC-20 tokens from the specified account.</a>
-<a name="511"><span class="lineNum">     511 </span>                :            :      * @param account The account from which ERC-20 tokens are burned.</a>
-<a name="512"><span class="lineNum">     512 </span>                :            :      * @param value The amount of ERC-20 tokens to burn.</a>
-<a name="513"><span class="lineNum">     513 </span>                :            :      * @notice Prevents burning tokens from address(0).</a>
-<a name="514"><span class="lineNum">     514 </span>                :            :      */</a>
-<a name="515"><span class="lineNum">     515 </span>                :            :     function _burnERC20(address account, uint256 value) internal {</a>
-<a name="516"><span class="lineNum">     516 </span>        [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchCov" title="Branch 1 was taken 5 times"> + </span>]:<span class="lineCov">         18 :         if (account == address(0)) {</span></a>
-<a name="517"><span class="lineNum">     517 </span>                :<span class="lineCov">          2 :             revert ERC20InvalidSender(address(0));</span></a>
-<a name="518"><span class="lineNum">     518 </span>                :            :         }</a>
-<a name="519"><span class="lineNum">     519 </span>                :<span class="lineCov">         10 :         _updateERC20(account, address(0), value);</span></a>
-<a name="520"><span class="lineNum">     520 </span>                :            :     }</a>
-<a name="521"><span class="lineNum">     521 </span>                :            : </a>
-<a name="522"><span class="lineNum">     522 </span>                :            :     /**</a>
-<a name="523"><span class="lineNum">     523 </span>                :            :      * @dev Mint a new ERC-721 token and assign ownership to the specified address.</a>
-<a name="524"><span class="lineNum">     524 </span>                :            :      * @param to The address to receive the minted ERC-721 token.</a>
-<a name="525"><span class="lineNum">     525 </span>                :            :      * @param tokenId The ID of the ERC-721 token to be minted.</a>
-<a name="526"><span class="lineNum">     526 </span>                :            :      */</a>
-<a name="527"><span class="lineNum">     527 </span>                :            :     function _mintERC721(address to, uint256 tokenId) internal {</a>
-<a name="528"><span class="lineNum">     528 </span>        [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchCov" title="Branch 1 was taken 35 times"> + </span>]:<span class="lineCov">        108 :         if (to == address(0)) {</span></a>
-<a name="529"><span class="lineNum">     529 </span>                :<span class="lineCov">          2 :             revert ERC721InvalidReceiver(address(0));</span></a>
-<a name="530"><span class="lineNum">     530 </span>                :            :         }</a>
-<a name="531"><span class="lineNum">     531 </span>                :<span class="lineCov">        105 :         address previousOwner = _updateERC721(to, tokenId);</span></a>
-<a name="532"><span class="lineNum">     532 </span>        [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchCov" title="Branch 1 was taken 34 times"> + </span>]:<span class="lineCov">        105 :         if (previousOwner != address(0)) {</span></a>
-<a name="533"><span class="lineNum">     533 </span>                :<span class="lineCov">          2 :             revert ERC721InvalidSender(address(0));</span></a>
-<a name="534"><span class="lineNum">     534 </span>                :            :         }</a>
-<a name="535"><span class="lineNum">     535 </span>                :            :         unchecked {</a>
-<a name="536"><span class="lineNum">     536 </span>                :<span class="lineCov">         68 :             minted++;</span></a>
-<a name="537"><span class="lineNum">     537 </span>                :            :         }</a>
-<a name="538"><span class="lineNum">     538 </span>                :            :     }</a>
-<a name="539"><span class="lineNum">     539 </span>                :            : </a>
-<a name="540"><span class="lineNum">     540 </span>                :            :     /**</a>
-<a name="541"><span class="lineNum">     541 </span>                :            :      * @dev Burn an existing ERC-721 token, removing it from circulation.</a>
-<a name="542"><span class="lineNum">     542 </span>                :            :      * @param tokenId The ID of the ERC-721 token to be burned.</a>
-<a name="543"><span class="lineNum">     543 </span>                :            :      */</a>
-<a name="544"><span class="lineNum">     544 </span>                :            :     function _burnERC721(uint256 tokenId) internal {</a>
-<a name="545"><span class="lineNum">     545 </span>                :<span class="lineCov">          6 :         address previousOwner = _updateERC721(address(0), tokenId);</span></a>
-<a name="546"><span class="lineNum">     546 </span>        [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">          6 :         if (previousOwner == address(0)) {</span></a>
-<a name="547"><span class="lineNum">     547 </span>                :<span class="lineCov">          2 :             revert ERC721NonexistentToken(tokenId);</span></a>
-<a name="548"><span class="lineNum">     548 </span>                :            :         }</a>
-<a name="549"><span class="lineNum">     549 </span>                :            :     }</a>
-<a name="550"><span class="lineNum">     550 </span>                :            : </a>
-<a name="551"><span class="lineNum">     551 </span>                :            :     /**</a>
-<a name="552"><span class="lineNum">     552 </span>                :            :      * @dev Converts ERC-721 token to ERC-20 tokens.</a>
-<a name="553"><span class="lineNum">     553 </span>                :            :      * @param tokenId The unique identifier of the ERC-721 token.</a>
-<a name="554"><span class="lineNum">     554 </span>                :            :      */</a>
-<a name="555"><span class="lineNum">     555 </span>                :            :     function erc721ToERC20(uint256 tokenId) external {</a>
-<a name="556"><span class="lineNum">     556 </span>                :<span class="lineCov">         12 :         address from = msg.sender;</span></a>
-<a name="557"><span class="lineNum">     557 </span>                :<span class="lineCov">         18 :         address to = address(this);</span></a>
+<a name="487"><span class="lineNum">     487 </span>                :<span class="lineCov">          8 :         _transferERC20(msg.sender, to, amount);</span></a>
+<a name="488"><span class="lineNum">     488 </span>                :<span class="lineCov">          2 :         return true;</span></a>
+<a name="489"><span class="lineNum">     489 </span>                :            :     }</a>
+<a name="490"><span class="lineNum">     490 </span>                :            : </a>
+<a name="491"><span class="lineNum">     491 </span>                :            :     /**</a>
+<a name="492"><span class="lineNum">     492 </span>                :            :      * @dev Mints new ERC-20 tokens to the specified account.</a>
+<a name="493"><span class="lineNum">     493 </span>                :            :      * @param account The account to which new ERC-20 tokens are minted.</a>
+<a name="494"><span class="lineNum">     494 </span>                :            :      * @param value The amount of ERC-20 tokens to mint.</a>
+<a name="495"><span class="lineNum">     495 </span>                :            :      * @notice Prevents minting tokens to address(0).</a>
+<a name="496"><span class="lineNum">     496 </span>                :            :      */</a>
+<a name="497"><span class="lineNum">     497 </span>                :            :     function _mintERC20(address account, uint256 value) internal {</a>
+<a name="498"><span class="lineNum">     498 </span>        [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchCov" title="Branch 1 was taken 22 times"> + </span>]:<span class="lineCov">         69 :         if (account == address(0)) {</span></a>
+<a name="499"><span class="lineNum">     499 </span>                :<span class="lineCov">          2 :             revert ERC20InvalidReceiver(address(0));</span></a>
+<a name="500"><span class="lineNum">     500 </span>                :            :         }</a>
+<a name="501"><span class="lineNum">     501 </span>                :<span class="lineCov">         44 :         _updateERC20(address(0), account, value);</span></a>
+<a name="502"><span class="lineNum">     502 </span>                :            :     }</a>
+<a name="503"><span class="lineNum">     503 </span>                :            : </a>
+<a name="504"><span class="lineNum">     504 </span>                :            :     /**</a>
+<a name="505"><span class="lineNum">     505 </span>                :            :      * @dev Burns ERC-20 tokens from the specified account.</a>
+<a name="506"><span class="lineNum">     506 </span>                :            :      * @param account The account from which ERC-20 tokens are burned.</a>
+<a name="507"><span class="lineNum">     507 </span>                :            :      * @param value The amount of ERC-20 tokens to burn.</a>
+<a name="508"><span class="lineNum">     508 </span>                :            :      * @notice Prevents burning tokens from address(0).</a>
+<a name="509"><span class="lineNum">     509 </span>                :            :      */</a>
+<a name="510"><span class="lineNum">     510 </span>                :            :     function _burnERC20(address account, uint256 value) internal {</a>
+<a name="511"><span class="lineNum">     511 </span>        [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchCov" title="Branch 1 was taken 5 times"> + </span>]:<span class="lineCov">         18 :         if (account == address(0)) {</span></a>
+<a name="512"><span class="lineNum">     512 </span>                :<span class="lineCov">          2 :             revert ERC20InvalidSender(address(0));</span></a>
+<a name="513"><span class="lineNum">     513 </span>                :            :         }</a>
+<a name="514"><span class="lineNum">     514 </span>                :<span class="lineCov">         10 :         _updateERC20(account, address(0), value);</span></a>
+<a name="515"><span class="lineNum">     515 </span>                :            :     }</a>
+<a name="516"><span class="lineNum">     516 </span>                :            : </a>
+<a name="517"><span class="lineNum">     517 </span>                :            :     /**</a>
+<a name="518"><span class="lineNum">     518 </span>                :            :      * @dev Mint a new ERC-721 token and assign ownership to the specified address.</a>
+<a name="519"><span class="lineNum">     519 </span>                :            :      * @param to The address to receive the minted ERC-721 token.</a>
+<a name="520"><span class="lineNum">     520 </span>                :            :      * @param tokenId The ID of the ERC-721 token to be minted.</a>
+<a name="521"><span class="lineNum">     521 </span>                :            :      */</a>
+<a name="522"><span class="lineNum">     522 </span>                :            :     function _mintERC721(address to, uint256 tokenId) internal {</a>
+<a name="523"><span class="lineNum">     523 </span>        [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchCov" title="Branch 1 was taken 35 times"> + </span>]:<span class="lineCov">        108 :         if (to == address(0)) {</span></a>
+<a name="524"><span class="lineNum">     524 </span>                :<span class="lineCov">          2 :             revert ERC721InvalidReceiver(address(0));</span></a>
+<a name="525"><span class="lineNum">     525 </span>                :            :         }</a>
+<a name="526"><span class="lineNum">     526 </span>                :<span class="lineCov">        105 :         address previousOwner = _updateERC721(to, tokenId);</span></a>
+<a name="527"><span class="lineNum">     527 </span>        [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchCov" title="Branch 1 was taken 34 times"> + </span>]:<span class="lineCov">        105 :         if (previousOwner != address(0)) {</span></a>
+<a name="528"><span class="lineNum">     528 </span>                :<span class="lineCov">          2 :             revert ERC721InvalidSender(address(0));</span></a>
+<a name="529"><span class="lineNum">     529 </span>                :            :         }</a>
+<a name="530"><span class="lineNum">     530 </span>                :            :         unchecked {</a>
+<a name="531"><span class="lineNum">     531 </span>                :<span class="lineCov">         68 :             minted++;</span></a>
+<a name="532"><span class="lineNum">     532 </span>                :            :         }</a>
+<a name="533"><span class="lineNum">     533 </span>                :            :     }</a>
+<a name="534"><span class="lineNum">     534 </span>                :            : </a>
+<a name="535"><span class="lineNum">     535 </span>                :            :     /**</a>
+<a name="536"><span class="lineNum">     536 </span>                :            :      * @dev Burn an existing ERC-721 token, removing it from circulation.</a>
+<a name="537"><span class="lineNum">     537 </span>                :            :      * @param tokenId The ID of the ERC-721 token to be burned.</a>
+<a name="538"><span class="lineNum">     538 </span>                :            :      */</a>
+<a name="539"><span class="lineNum">     539 </span>                :            :     function _burnERC721(uint256 tokenId) internal {</a>
+<a name="540"><span class="lineNum">     540 </span>                :<span class="lineCov">          6 :         address previousOwner = _updateERC721(address(0), tokenId);</span></a>
+<a name="541"><span class="lineNum">     541 </span>        [<span class="branchCov" title="Branch 0 was taken 1 time"> + </span><span class="branchCov" title="Branch 1 was taken 1 time"> + </span>]:<span class="lineCov">          6 :         if (previousOwner == address(0)) {</span></a>
+<a name="542"><span class="lineNum">     542 </span>                :<span class="lineCov">          2 :             revert ERC721NonexistentToken(tokenId);</span></a>
+<a name="543"><span class="lineNum">     543 </span>                :            :         }</a>
+<a name="544"><span class="lineNum">     544 </span>                :            :     }</a>
+<a name="545"><span class="lineNum">     545 </span>                :            : </a>
+<a name="546"><span class="lineNum">     546 </span>                :            :     /**</a>
+<a name="547"><span class="lineNum">     547 </span>                :            :      * @dev Converts ERC-721 token to ERC-20 tokens.</a>
+<a name="548"><span class="lineNum">     548 </span>                :            :      * @param tokenId The unique identifier of the ERC-721 token.</a>
+<a name="549"><span class="lineNum">     549 </span>                :            :      */</a>
+<a name="550"><span class="lineNum">     550 </span>                :            :     function erc721ToERC20(uint256 tokenId) external {</a>
+<a name="551"><span class="lineNum">     551 </span>                :<span class="lineCov">         12 :         address from = msg.sender;</span></a>
+<a name="552"><span class="lineNum">     552 </span>                :<span class="lineCov">         18 :         address to = address(this);</span></a>
+<a name="553"><span class="lineNum">     553 </span>                :            : </a>
+<a name="554"><span class="lineNum">     554 </span>                :<span class="lineCov">         12 :         _erc721TransferFrom(from, to, tokenId);</span></a>
+<a name="555"><span class="lineNum">     555 </span>                :<span class="lineCov">         12 :         _mintERC20(from, _units);</span></a>
+<a name="556"><span class="lineNum">     556 </span>                :<span class="lineCov">         12 :         emit ERC721ToERC20(to, tokenId, _units);</span></a>
+<a name="557"><span class="lineNum">     557 </span>                :            :     }</a>
 <a name="558"><span class="lineNum">     558 </span>                :            : </a>
-<a name="559"><span class="lineNum">     559 </span>                :<span class="lineCov">         12 :         _erc721TransferFrom(from, to, tokenId);</span></a>
-<a name="560"><span class="lineNum">     560 </span>                :<span class="lineCov">         12 :         _mintERC20(from, _units);</span></a>
-<a name="561"><span class="lineNum">     561 </span>                :<span class="lineCov">         12 :         emit ERC721ToERC20(to, tokenId, _units);</span></a>
-<a name="562"><span class="lineNum">     562 </span>                :            :     }</a>
-<a name="563"><span class="lineNum">     563 </span>                :            : </a>
-<a name="564"><span class="lineNum">     564 </span>                :            :     /**</a>
-<a name="565"><span class="lineNum">     565 </span>                :            :      * @dev Converts ERC-20 tokens to an ERC-721 token.</a>
-<a name="566"><span class="lineNum">     566 </span>                :            :      * @param amount The amount of ERC-20 tokens to convert.</a>
-<a name="567"><span class="lineNum">     567 </span>                :            :      */</a>
-<a name="568"><span class="lineNum">     568 </span>                :            :     function erc20ToERC721(uint256 amount) external {</a>
-<a name="569"><span class="lineNum">     569 </span>                :<span class="lineCov">          9 :         uint256 nftAmount = amount / _units;</span></a>
-<a name="570"><span class="lineNum">     570 </span>                :<span class="lineCov">          9 :         uint256 ftAmount = nftAmount * _units;</span></a>
+<a name="559"><span class="lineNum">     559 </span>                :            :     /**</a>
+<a name="560"><span class="lineNum">     560 </span>                :            :      * @dev Converts ERC-20 tokens to an ERC-721 token.</a>
+<a name="561"><span class="lineNum">     561 </span>                :            :      * @param amount The amount of ERC-20 tokens to convert.</a>
+<a name="562"><span class="lineNum">     562 </span>                :            :      */</a>
+<a name="563"><span class="lineNum">     563 </span>                :            :     function erc20ToERC721(uint256 amount) external {</a>
+<a name="564"><span class="lineNum">     564 </span>                :<span class="lineCov">          9 :         uint256 nftAmount = amount / _units;</span></a>
+<a name="565"><span class="lineNum">     565 </span>                :<span class="lineCov">          9 :         uint256 ftAmount = nftAmount * _units;</span></a>
+<a name="566"><span class="lineNum">     566 </span>                :            : </a>
+<a name="567"><span class="lineNum">     567 </span>                :<span class="lineCov">          6 :         _burnERC20(msg.sender, ftAmount);</span></a>
+<a name="568"><span class="lineNum">     568 </span>                :            : </a>
+<a name="569"><span class="lineNum">     569 </span>                :<span class="lineCov">          6 :         uint256 nftMintAmount = _owned[address(this)].length &lt; nftAmount ? nftAmount - _owned[address(this)].length : 0;</span></a>
+<a name="570"><span class="lineNum">     570 </span>                :<span class="lineCov">          6 :         uint256 nftTransferAmount = nftAmount - nftMintAmount;</span></a>
 <a name="571"><span class="lineNum">     571 </span>                :            : </a>
-<a name="572"><span class="lineNum">     572 </span>                :<span class="lineCov">          6 :         _burnERC20(msg.sender, ftAmount);</span></a>
+<a name="572"><span class="lineNum">     572 </span>                :<span class="lineCov">          6 :         uint256[] memory tokenIds = new uint256[](nftAmount);</span></a>
 <a name="573"><span class="lineNum">     573 </span>                :            : </a>
-<a name="574"><span class="lineNum">     574 </span>                :<span class="lineCov">          6 :         uint256 nftMintAmount = _owned[address(this)].length &lt; nftAmount ? nftAmount - _owned[address(this)].length : 0;</span></a>
-<a name="575"><span class="lineNum">     575 </span>                :<span class="lineCov">          6 :         uint256 nftTransferAmount = nftAmount - nftMintAmount;</span></a>
-<a name="576"><span class="lineNum">     576 </span>                :            : </a>
-<a name="577"><span class="lineNum">     577 </span>                :<span class="lineCov">          6 :         uint256[] memory tokenIds = new uint256[](nftAmount);</span></a>
-<a name="578"><span class="lineNum">     578 </span>                :            : </a>
-<a name="579"><span class="lineNum">     579 </span>                :<span class="lineCov">         18 :         for (uint256 i = 0; i &lt; nftMintAmount; i++) {</span></a>
-<a name="580"><span class="lineNum">     580 </span>                :<span class="lineCov">         18 :             uint256 tokenId = minted + 1;</span></a>
-<a name="581"><span class="lineNum">     581 </span>                :<span class="lineCov">         12 :             _mintERC721(msg.sender, tokenId);</span></a>
-<a name="582"><span class="lineNum">     582 </span>                :<span class="lineCov">         12 :             tokenIds[i] = tokenId;</span></a>
-<a name="583"><span class="lineNum">     583 </span>                :            :         }</a>
-<a name="584"><span class="lineNum">     584 </span>                :            : </a>
-<a name="585"><span class="lineNum">     585 </span>                :<span class="lineCov">         16 :         for (uint256 i = 0; i &lt; nftTransferAmount; i++) {</span></a>
-<a name="586"><span class="lineNum">     586 </span>                :<span class="lineCov">         10 :             uint256 tokenId = _owned[address(this)][_owned[address(this)].length - 1];</span></a>
-<a name="587"><span class="lineNum">     587 </span>                :<span class="lineCov">         10 :             _updateERC721(msg.sender, tokenId);</span></a>
-<a name="588"><span class="lineNum">     588 </span>                :<span class="lineCov">         10 :             tokenIds[i + nftMintAmount] = tokenId;</span></a>
-<a name="589"><span class="lineNum">     589 </span>                :            :         }</a>
-<a name="590"><span class="lineNum">     590 </span>                :<span class="lineCov">          4 :         emit ERC20ToERC721(msg.sender, ftAmount, tokenIds);</span></a>
-<a name="591"><span class="lineNum">     591 </span>                :            :     }</a>
-<a name="592"><span class="lineNum">     592 </span>                :            : </a>
-<a name="593"><span class="lineNum">     593 </span>                :            :     /**</a>
-<a name="594"><span class="lineNum">     594 </span>                :            :      * @dev Retrieves the unit value associated with the token.</a>
-<a name="595"><span class="lineNum">     595 </span>                :            :      * @return The unit value.</a>
-<a name="596"><span class="lineNum">     596 </span>                :            :      */</a>
-<a name="597"><span class="lineNum">     597 </span>                :            :     function getUnit() external view returns (uint256) {</a>
-<a name="598"><span class="lineNum">     598 </span>                :<span class="lineCov">         10 :         return _units;</span></a>
-<a name="599"><span class="lineNum">     599 </span>                :            :     }</a>
-<a name="600"><span class="lineNum">     600 </span>                :            : </a>
-<a name="601"><span class="lineNum">     601 </span>                :            :     /**</a>
-<a name="602"><span class="lineNum">     602 </span>                :            :      * @dev Checks if the contract supports a given interface.</a>
-<a name="603"><span class="lineNum">     603 </span>                :            :      * @param interfaceId The interface identifier.</a>
-<a name="604"><span class="lineNum">     604 </span>                :            :      * @return True if the contract supports the given interface, false otherwise.</a>
-<a name="605"><span class="lineNum">     605 </span>                :            :      */</a>
-<a name="606"><span class="lineNum">     606 </span>                :            :     function supportsInterface(bytes4 interfaceId) public view virtual returns (bool) {</a>
-<a name="607"><span class="lineNum">     607 </span>                :<span class="lineCov">         14 :         return interfaceId == type(IERC7629).interfaceId || interfaceId == type(IERC165).interfaceId;</span></a>
-<a name="608"><span class="lineNum">     608 </span>                :            :     }</a>
-<a name="609"><span class="lineNum">     609 </span>                :            : }</a>
+<a name="574"><span class="lineNum">     574 </span>                :<span class="lineCov">         18 :         for (uint256 i = 0; i &lt; nftMintAmount; i++) {</span></a>
+<a name="575"><span class="lineNum">     575 </span>                :<span class="lineCov">         18 :             uint256 tokenId = minted + 1;</span></a>
+<a name="576"><span class="lineNum">     576 </span>                :<span class="lineCov">         12 :             _mintERC721(msg.sender, tokenId);</span></a>
+<a name="577"><span class="lineNum">     577 </span>                :<span class="lineCov">         12 :             tokenIds[i] = tokenId;</span></a>
+<a name="578"><span class="lineNum">     578 </span>                :            :         }</a>
+<a name="579"><span class="lineNum">     579 </span>                :            : </a>
+<a name="580"><span class="lineNum">     580 </span>                :<span class="lineCov">         16 :         for (uint256 i = 0; i &lt; nftTransferAmount; i++) {</span></a>
+<a name="581"><span class="lineNum">     581 </span>                :<span class="lineCov">         10 :             uint256 tokenId = _owned[address(this)][_owned[address(this)].length - 1];</span></a>
+<a name="582"><span class="lineNum">     582 </span>                :<span class="lineCov">         10 :             _updateERC721(msg.sender, tokenId);</span></a>
+<a name="583"><span class="lineNum">     583 </span>                :<span class="lineCov">         10 :             tokenIds[i + nftMintAmount] = tokenId;</span></a>
+<a name="584"><span class="lineNum">     584 </span>                :            :         }</a>
+<a name="585"><span class="lineNum">     585 </span>                :<span class="lineCov">          4 :         emit ERC20ToERC721(msg.sender, ftAmount, tokenIds);</span></a>
+<a name="586"><span class="lineNum">     586 </span>                :            :     }</a>
+<a name="587"><span class="lineNum">     587 </span>                :            : </a>
+<a name="588"><span class="lineNum">     588 </span>                :            :     /**</a>
+<a name="589"><span class="lineNum">     589 </span>                :            :      * @dev Retrieves the unit value associated with the token.</a>
+<a name="590"><span class="lineNum">     590 </span>                :            :      * @return The unit value.</a>
+<a name="591"><span class="lineNum">     591 </span>                :            :      */</a>
+<a name="592"><span class="lineNum">     592 </span>                :            :     function getUnit() external view returns (uint256) {</a>
+<a name="593"><span class="lineNum">     593 </span>                :<span class="lineCov">         10 :         return _units;</span></a>
+<a name="594"><span class="lineNum">     594 </span>                :            :     }</a>
+<a name="595"><span class="lineNum">     595 </span>                :            : </a>
+<a name="596"><span class="lineNum">     596 </span>                :            :     /**</a>
+<a name="597"><span class="lineNum">     597 </span>                :            :      * @dev Checks if the contract supports a given interface.</a>
+<a name="598"><span class="lineNum">     598 </span>                :            :      * @param interfaceId The interface identifier.</a>
+<a name="599"><span class="lineNum">     599 </span>                :            :      * @return True if the contract supports the given interface, false otherwise.</a>
+<a name="600"><span class="lineNum">     600 </span>                :            :      */</a>
+<a name="601"><span class="lineNum">     601 </span>                :            :     function supportsInterface(bytes4 interfaceId) public view virtual returns (bool) {</a>
+<a name="602"><span class="lineNum">     602 </span>                :<span class="lineCov">         14 :         return interfaceId == type(IERC7629).interfaceId || interfaceId == type(IERC165).interfaceId;</span></a>
+<a name="603"><span class="lineNum">     603 </span>                :            :     }</a>
+<a name="604"><span class="lineNum">     604 </span>                :            : }</a>
 </pre>
       </td>
     </tr>
