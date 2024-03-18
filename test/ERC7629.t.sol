@@ -3,6 +3,67 @@ pragma solidity ^0.8.13;
 import {Test} from "forge-std/Test.sol";
 import "forge-std/console.sol";
 import {ERC7629Mock} from "./mock/ERC7629Mock.sol";
+import {ERC7629} from "../src/ERC7629.sol";
+
+abstract contract ERC721TokenReceiver {
+    function onERC721Received(
+        address,
+        address,
+        uint256,
+        bytes calldata
+    ) external virtual returns (bytes4) {
+        return ERC721TokenReceiver.onERC721Received.selector;
+    }
+}
+
+contract ERC721Recipient is ERC721TokenReceiver {
+    address public operator;
+    address public from;
+    uint256 public id;
+    bytes public data;
+
+    function onERC721Received(
+        address _operator,
+        address _from,
+        uint256 _id,
+        bytes calldata _data
+    ) public virtual override returns (bytes4) {
+        operator = _operator;
+        from = _from;
+        id = _id;
+        data = _data;
+
+        return ERC721TokenReceiver.onERC721Received.selector;
+    }
+}
+
+contract RevertingERC721Recipient is ERC721TokenReceiver {
+    function onERC721Received(
+        address,
+        address,
+        uint256,
+        bytes calldata
+    ) public virtual override returns (bytes4) {
+        revert(
+            string(
+                abi.encodePacked(ERC721TokenReceiver.onERC721Received.selector)
+            )
+        );
+    }
+}
+
+contract WrongReturnDataERC721Recipient is ERC721TokenReceiver {
+    function onERC721Received(
+        address,
+        address,
+        uint256,
+        bytes calldata
+    ) public virtual override returns (bytes4) {
+        return 0xCAFEBEEF;
+    }
+}
+
+contract NonERC721Recipient {}
 
 contract ERC7629Test is Test {
     ERC7629Mock erc7629;
@@ -436,5 +497,79 @@ contract ERC7629Test is Test {
         assertEq(tokenIds[0], 1);
         assertEq(tokenIds[1], 2);
         assertEq(tokenIds[2], 3);
+    }
+
+    function test_erc721_safe_transfer_from() public {
+        address from = address(0x1);
+        address to = address(0x2);
+
+        erc7629.mintERC721(from, 1);
+
+        vm.prank(from);
+        erc7629.setApprovalForAll(address(this), true);
+
+        erc7629.safeTransferFrom(from, to, 1);
+
+        assertEq(erc7629.ownerOf(1), to);
+        assertEq(erc7629.erc721BalanceOf(from), 0);
+        assertEq(erc7629.erc721BalanceOf(to), 1);
+        assertEq(erc7629.getApproved(1), address(0));
+    }
+
+    function test_erc721_safe_transfer_from_with_data() public {
+        address from = address(0x1);
+        address to = address(0x2);
+
+        erc7629.mintERC721(from, 1);
+
+        vm.prank(from);
+        erc7629.setApprovalForAll(address(this), true);
+
+        erc7629.safeTransferFrom(from, to, 1, "0x1234");
+
+        assertEq(erc7629.ownerOf(1), to);
+        assertEq(erc7629.erc721BalanceOf(from), 0);
+        assertEq(erc7629.erc721BalanceOf(to), 1);
+        assertEq(erc7629.getApproved(1), address(0));
+    }
+
+    function test_erc721_safe_transfer_to_non_erc721_recipient_reverts()
+        public
+    {
+        address from = address(0x1);
+        address nonERC721Recipient = address(new NonERC721Recipient());
+
+        erc7629.mintERC721(from, 1);
+
+        vm.prank(from);
+        erc7629.setApprovalForAll(address(this), true);
+
+        bytes memory data = abi.encodeWithSelector(
+            ERC7629.ERC721InvalidReceiver.selector,
+            nonERC721Recipient
+        );
+
+        vm.expectRevert(data);
+        erc7629.safeTransferFrom(from, nonERC721Recipient, 1);
+    }
+
+    function test_erc721_safe_transfer_to_non_erc721_recipient_with_data_reverts()
+        public
+    {
+        address from = address(0x1);
+        address nonERC721Recipient = address(new NonERC721Recipient());
+
+        erc7629.mintERC721(from, 1);
+
+        vm.prank(from);
+        erc7629.setApprovalForAll(address(this), true);
+
+        bytes memory data = abi.encodeWithSelector(
+            ERC7629.ERC721InvalidReceiver.selector,
+            nonERC721Recipient
+        );
+
+        vm.expectRevert(data);
+        erc7629.safeTransferFrom(from, nonERC721Recipient, 1, "0x1234");
     }
 }
