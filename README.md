@@ -31,6 +31,20 @@ To test the ERC-7629 implementation with foundry, test cases can be stored in `s
 forge test
 ```
 
+### Test Coverage (Foundry)
+
+To generate test coverage, run the following command:
+
+```bash
+forge coverage
+```
+
+Generate a detail report with lcov and genhtml by running the following command:
+
+```bash
+forge coverage --report lcov && genhtml lcov.info --branch-coverage --output-dir coverage
+```
+
 ### Format (Foundry)
 
 Simply run the following command to format the code:
