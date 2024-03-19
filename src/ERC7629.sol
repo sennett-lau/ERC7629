@@ -14,6 +14,7 @@ abstract contract ERC7629 is IERC7629 {
     error ERC721NonexistentToken(uint256 tokenId);
 
     // ERC-20 related errors
+    error TotalSupplyOverflow();
     error ERC20InvalidSpender(address spender);
     error ERC20InsufficientAllowance(address spender, uint256 allowance, uint256 needed);
     error ERC20InvalidSender(address sender);
@@ -38,8 +39,8 @@ abstract contract ERC7629 is IERC7629 {
     // ERC-20 allowances mapping
     mapping(address => mapping(address => uint256)) private _allowances;
 
-    // Total supply of ERC-20 tokens
-    uint256 private _totalSupply;
+    // Storage slot for the total supply of ERC-20 tokens
+    uint256 private constant _TOTAL_SUPPLY_SLOT = 0x05345cdf77eb68f44c;
 
     // ERC-721 balance mapping
     mapping(address => uint256) private _erc721BalanceOf;
@@ -100,8 +101,11 @@ abstract contract ERC7629 is IERC7629 {
     /**
      * @dev Returns the total supply of the ERC-20 tokens.
      */
-    function totalSupply() public view virtual returns (uint256) {
-        return _totalSupply;
+    function totalSupply() public view virtual returns (uint256 result) {
+        /// @solidity memory-safe-assembly
+        assembly {
+            result := sload(_TOTAL_SUPPLY_SLOT)
+        }
     }
 
     /**
@@ -115,8 +119,11 @@ abstract contract ERC7629 is IERC7629 {
     /**
      * @dev Returns the total supply of ERC-20 tokens.
      */
-    function erc20TotalSupply() external view returns (uint256) {
-        return _totalSupply;
+    function erc20TotalSupply() external view returns (uint256 result) {
+        /// @solidity memory-safe-assembly
+        assembly {
+            result := sload(_TOTAL_SUPPLY_SLOT)
+        }
     }
 
     /**
@@ -386,7 +393,19 @@ abstract contract ERC7629 is IERC7629 {
     function _updateERC20(address from, address to, uint256 value) internal virtual {
         if (from == address(0)) {
             // Overflow check required: The rest of the code assumes that totalSupply never overflows
-            _totalSupply += value;
+
+            /// @solidity memory-safe-assembly
+            assembly {
+                let totalSupplyBefore := sload(_TOTAL_SUPPLY_SLOT)
+                let totalSupplyAfter := add(totalSupplyBefore, value)
+                // Revert if the total supply overflows.
+                if lt(totalSupplyAfter, totalSupplyBefore) {
+                    mstore(0x00, 0xe5cfe957) // `TotalSupplyOverflow()`.
+                    revert(0x1c, 0x04)
+                }
+                // Store the updated total supply.
+                sstore(_TOTAL_SUPPLY_SLOT, totalSupplyAfter)
+            }
         } else {
             uint256 fromBalance = _erc20BalanceOf[from];
             if (fromBalance < value) {
@@ -399,9 +418,10 @@ abstract contract ERC7629 is IERC7629 {
         }
 
         if (to == address(0)) {
-            unchecked {
-                // Overflow not possible: value <= totalSupply or value <= fromBalance <= totalSupply.
-                _totalSupply -= value;
+            // Overflow not possible: value <= totalSupply or value <= fromBalance <= totalSupply.
+            /// @solidity memory-safe-assembly
+            assembly {
+                sstore(_TOTAL_SUPPLY_SLOT, sub(sload(_TOTAL_SUPPLY_SLOT), value))
             }
         } else {
             unchecked {
