@@ -9,12 +9,7 @@ import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/interfaces/IERC165.sol";
 
 abstract contract ERC721TokenReceiver {
-    function onERC721Received(
-        address,
-        address,
-        uint256,
-        bytes calldata
-    ) external virtual returns (bytes4) {
+    function onERC721Received(address, address, uint256, bytes calldata) external virtual returns (bytes4) {
         return ERC721TokenReceiver.onERC721Received.selector;
     }
 }
@@ -25,12 +20,12 @@ contract ERC721Recipient is ERC721TokenReceiver {
     uint256 public id;
     bytes public data;
 
-    function onERC721Received(
-        address _operator,
-        address _from,
-        uint256 _id,
-        bytes calldata _data
-    ) public virtual override returns (bytes4) {
+    function onERC721Received(address _operator, address _from, uint256 _id, bytes calldata _data)
+        public
+        virtual
+        override
+        returns (bytes4)
+    {
         operator = _operator;
         from = _from;
         id = _id;
@@ -43,23 +38,13 @@ contract ERC721Recipient is ERC721TokenReceiver {
 contract RevertingERC721Recipient is ERC721TokenReceiver {
     error RevertFromERC721Received();
 
-    function onERC721Received(
-        address,
-        address,
-        uint256,
-        bytes calldata
-    ) public virtual override returns (bytes4) {
+    function onERC721Received(address, address, uint256, bytes calldata) public virtual override returns (bytes4) {
         revert RevertFromERC721Received();
     }
 }
 
 contract WrongReturnDataERC721Recipient is ERC721TokenReceiver {
-    function onERC721Received(
-        address,
-        address,
-        uint256,
-        bytes calldata
-    ) public virtual override returns (bytes4) {
+    function onERC721Received(address, address, uint256, bytes calldata) public virtual override returns (bytes4) {
         return 0xCAFEBEEF;
     }
 }
@@ -195,14 +180,7 @@ contract ERC7629Test is Test {
 
         address user = address(0x1);
 
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                ERC7629.ERC20InsufficientBalance.selector,
-                user,
-                0,
-                amountToConvert
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(ERC7629.ERC20InsufficientBalance.selector, user, 0, amountToConvert));
         vm.prank(user);
         erc7629.erc20ToERC721(amountToConvert);
     }
@@ -213,12 +191,7 @@ contract ERC7629Test is Test {
         vm.prank(address(0x1));
         erc7629.approve(address(this), 10_000);
 
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                ERC7629.ERC20InvalidReceiver.selector,
-                address(0)
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(ERC7629.ERC20InvalidReceiver.selector, address(0)));
         erc7629.transferFrom(address(0x1), address(0), 10_000);
     }
 
@@ -281,12 +254,7 @@ contract ERC7629Test is Test {
         // mint erc271
         erc7629.mintERC721(user, tokenId);
 
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                ERC7629.ERC721InvalidReceiver.selector,
-                address(0)
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(ERC7629.ERC721InvalidReceiver.selector, address(0)));
         vm.prank(spender);
         erc7629.transferFrom(user, address(0), tokenId);
     }
@@ -337,12 +305,7 @@ contract ERC7629Test is Test {
     }
 
     function test_erc20_mint_to_0_reverts() public {
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                ERC7629.ERC20InvalidReceiver.selector,
-                address(0)
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(ERC7629.ERC20InvalidReceiver.selector, address(0)));
         erc7629.mintERC20(address(0), 10_000);
     }
 
@@ -356,12 +319,7 @@ contract ERC7629Test is Test {
     }
 
     function test_erc20_burn_from_0_reverts() public {
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                ERC7629.ERC20InvalidSender.selector,
-                address(0)
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(ERC7629.ERC20InvalidSender.selector, address(0)));
         erc7629.burnERC20(address(0), 10_000);
     }
 
@@ -371,10 +329,7 @@ contract ERC7629Test is Test {
 
         vm.expectRevert(
             abi.encodeWithSelector(
-                ERC7629.ERC20InsufficientBalance.selector,
-                address(0x1),
-                amountToMint,
-                amountToMint + 1
+                ERC7629.ERC20InsufficientBalance.selector, address(0x1), amountToMint, amountToMint + 1
             )
         );
         erc7629.burnERC20(address(0x1), amountToMint + 1);
@@ -436,10 +391,7 @@ contract ERC7629Test is Test {
 
         vm.expectRevert(
             abi.encodeWithSelector(
-                ERC7629.ERC20InsufficientBalance.selector,
-                address(0x1),
-                amountToMint,
-                amountToMint + 1
+                ERC7629.ERC20InsufficientBalance.selector, address(0x1), amountToMint, amountToMint + 1
             )
         );
         vm.prank(address(0x1));
@@ -447,12 +399,7 @@ contract ERC7629Test is Test {
     }
 
     function test_transfer_from_0_reverts() public {
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                ERC7629.ERC20InvalidSender.selector,
-                address(0)
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(ERC7629.ERC20InvalidSender.selector, address(0)));
         vm.prank(address(0));
         erc7629.transfer(address(0x1), 10_000);
     }
@@ -461,12 +408,7 @@ contract ERC7629Test is Test {
         uint256 amountToMint = 10_000;
         erc7629.mintERC20(address(0x1), amountToMint);
 
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                ERC7629.ERC20InvalidReceiver.selector,
-                address(0)
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(ERC7629.ERC20InvalidReceiver.selector, address(0)));
         vm.prank(address(0x1));
         erc7629.transfer(address(0), amountToMint);
     }
@@ -483,12 +425,7 @@ contract ERC7629Test is Test {
     }
 
     function test_erc20_approve_with_invalid_spender_reverts() public {
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                ERC7629.ERC20InvalidSpender.selector,
-                address(0)
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(ERC7629.ERC20InvalidSpender.selector, address(0)));
         erc7629.erc20Approve(address(0), 10_000);
     }
 
@@ -505,18 +442,11 @@ contract ERC7629Test is Test {
         assertEq(erc7629.erc20BalanceOf(address(0x2)), amountToMint);
     }
 
-    function test_erc20_transfer_from_with_insufficient_allowance_reverts()
-        public
-    {
+    function test_erc20_transfer_from_with_insufficient_allowance_reverts() public {
         uint256 amountToMint = 10_000 * 1e18;
         erc7629.mintERC20(address(0x1), amountToMint);
         vm.expectRevert(
-            abi.encodeWithSelector(
-                ERC7629.ERC20InsufficientAllowance.selector,
-                address(this),
-                0,
-                amountToMint
-            )
+            abi.encodeWithSelector(ERC7629.ERC20InsufficientAllowance.selector, address(this), 0, amountToMint)
         );
         erc7629.erc20TransferFrom(address(0x1), address(0x2), amountToMint);
     }
@@ -540,23 +470,13 @@ contract ERC7629Test is Test {
     }
 
     function test_erc721_mint_to_0_reverts() public {
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                ERC7629.ERC721InvalidReceiver.selector,
-                address(0)
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(ERC7629.ERC721InvalidReceiver.selector, address(0)));
         erc7629.mintERC721(address(0), 1);
     }
 
     function test_erc721_mint_minted_token_reverts() public {
         erc7629.mintERC721(address(0x1), 1);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                ERC7629.ERC721InvalidSender.selector,
-                address(0)
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(ERC7629.ERC721InvalidSender.selector, address(0)));
         erc7629.mintERC721(address(0x1), 1);
     }
 
@@ -627,9 +547,7 @@ contract ERC7629Test is Test {
     }
 
     function test_get_approved_with_non_exist_token() public {
-        vm.expectRevert(
-            abi.encodeWithSelector(ERC7629.ERC721NonexistentToken.selector, 1)
-        );
+        vm.expectRevert(abi.encodeWithSelector(ERC7629.ERC721NonexistentToken.selector, 1));
         erc7629.getApproved(1);
     }
 
@@ -652,12 +570,7 @@ contract ERC7629Test is Test {
     function test_erc721_approve_with_invalid_approver_reverts() public {
         erc7629.mintERC721(address(0x1), 1);
 
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                ERC7629.ERC721InvalidApprover.selector,
-                address(this)
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(ERC7629.ERC721InvalidApprover.selector, address(this)));
         erc7629.erc721Approve(address(0x2), 1);
     }
 
@@ -676,12 +589,7 @@ contract ERC7629Test is Test {
     }
 
     function test_set_approval_for_all_with_invalid_operator_reverts() public {
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                ERC7629.ERC721InvalidOperator.selector,
-                address(0)
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(ERC7629.ERC721InvalidOperator.selector, address(0)));
         erc7629.setApprovalForAll(address(0), true);
     }
 
@@ -717,22 +625,13 @@ contract ERC7629Test is Test {
     }
 
     function test_erc721_transfer_from_non_exist_token_reverts() public {
-        vm.expectRevert(
-            abi.encodeWithSelector(ERC7629.ERC721NonexistentToken.selector, 1)
-        );
+        vm.expectRevert(abi.encodeWithSelector(ERC7629.ERC721NonexistentToken.selector, 1));
         erc7629.erc721TransferFrom(address(0x1), address(0x2), 1);
     }
 
     function test_erc721_transfer_from_incorrect_owner_reverts() public {
         erc7629.mintERC721(address(0x1), 1);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                ERC7629.ERC721IncorrectOwner.selector,
-                address(0x2),
-                1,
-                address(0x1)
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(ERC7629.ERC721IncorrectOwner.selector, address(0x2), 1, address(0x1)));
         erc7629.erc721TransferFrom(address(0x2), address(0x3), 1);
     }
 
@@ -770,9 +669,7 @@ contract ERC7629Test is Test {
         assertEq(erc7629.getApproved(1), address(0));
     }
 
-    function test_erc721_safe_transfer_to_non_erc721_recipient_reverts()
-        public
-    {
+    function test_erc721_safe_transfer_to_non_erc721_recipient_reverts() public {
         address from = address(0x1);
         address nonERC721Recipient = address(new NonERC721Recipient());
 
@@ -781,18 +678,13 @@ contract ERC7629Test is Test {
         vm.prank(from);
         erc7629.setApprovalForAll(address(this), true);
 
-        bytes memory data = abi.encodeWithSelector(
-            ERC7629.ERC721InvalidReceiver.selector,
-            nonERC721Recipient
-        );
+        bytes memory data = abi.encodeWithSelector(ERC7629.ERC721InvalidReceiver.selector, nonERC721Recipient);
 
         vm.expectRevert(data);
         erc7629.safeTransferFrom(from, nonERC721Recipient, 1);
     }
 
-    function test_erc721_safe_transfer_to_non_erc721_recipient_with_data_reverts()
-        public
-    {
+    function test_erc721_safe_transfer_to_non_erc721_recipient_with_data_reverts() public {
         address from = address(0x1);
         address nonERC721Recipient = address(new NonERC721Recipient());
 
@@ -801,10 +693,7 @@ contract ERC7629Test is Test {
         vm.prank(from);
         erc7629.setApprovalForAll(address(this), true);
 
-        bytes memory data = abi.encodeWithSelector(
-            ERC7629.ERC721InvalidReceiver.selector,
-            nonERC721Recipient
-        );
+        bytes memory data = abi.encodeWithSelector(ERC7629.ERC721InvalidReceiver.selector, nonERC721Recipient);
 
         vm.expectRevert(data);
         erc7629.safeTransferFrom(from, nonERC721Recipient, 1, "0x1234");
@@ -822,9 +711,7 @@ contract ERC7629Test is Test {
     }
 
     function test_burn_erc721_non_minted_token_reverts() public {
-        vm.expectRevert(
-            abi.encodeWithSelector(ERC7629.ERC721NonexistentToken.selector, 1)
-        );
+        vm.expectRevert(abi.encodeWithSelector(ERC7629.ERC721NonexistentToken.selector, 1));
         erc7629.burnERC721(1);
     }
 
