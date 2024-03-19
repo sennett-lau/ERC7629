@@ -484,11 +484,6 @@ abstract contract ERC7629 is IERC7629 {
      * @notice Prevents burning tokens to address(0).
      */
     function transfer(address to, uint256 amount) external returns (bool) {
-        // Prevent burning tokens to 0x0.
-        if (to == address(0)) {
-            revert ERC20InvalidReceiver(to);
-        }
-
         _transferERC20(msg.sender, to, amount);
         return true;
     }
