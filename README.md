@@ -53,7 +53,15 @@ Simply run the following command to format the code:
 forge fmt
 ```
 
-### Gas Snapshot (Foundry)
+### Gas Snapshot & Report (Foundry)
+
+> ⚠️ The gas report command will also generate a .gas-snapshot with larger gas usage, please run the gas snapshot command after to generate a report snapshot.
+
+Generate a detail report with gas report by running the following command:
+
+```bash
+forge s --gas-report | awk '/test\/mock\/ERC7629Mock.sol/,/^$/' > .gap-report && forge s
+```
 
 To generate gas snapshot, run the following command:
 

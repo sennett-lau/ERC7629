@@ -1,0 +1,38 @@
+| test/mock/ERC7629Mock.sol:ERC7629Mock contract  |                 |        |        |        |         |
+|-------------------------------------------------|-----------------|--------|--------|--------|---------|
+| Deployment Cost                                 | Deployment Size |        |        |        |         |
+| 1716492                                         | 8896            |        |        |        |         |
+| Function Name                                   | min             | avg    | median | max    | # calls |
+| allowance                                       | 859             | 859    | 859    | 859    | 3       |
+| approve                                         | 50238           | 51039  | 50394  | 52485  | 3       |
+| balanceOf                                       | 648             | 1648   | 1648   | 2648   | 2       |
+| burnERC20                                       | 21906           | 24475  | 24253  | 27266  | 3       |
+| burnERC721                                      | 28124           | 33683  | 33683  | 39243  | 2       |
+| decimals                                        | 251             | 251    | 251    | 251    | 1       |
+| erc20Approve                                    | 21860           | 39324  | 47907  | 48207  | 3       |
+| erc20BalanceOf                                  | 606             | 606    | 606    | 606    | 11      |
+| erc20ToERC721                                   | 24228           | 272675 | 147623 | 646175 | 3       |
+| erc20TotalSupply                                | 382             | 1382   | 1382   | 2382   | 2       |
+| erc20TransferFrom                               | 24570           | 36017  | 36017  | 47465  | 2       |
+| erc721Approve                                   | 26432           | 38339  | 38339  | 50246  | 2       |
+| erc721BalanceOf                                 | 670             | 836    | 670    | 2670   | 12      |
+| erc721ToERC20                                   | 103358          | 113824 | 103358 | 151858 | 6       |
+| erc721TotalSupply                               | 359             | 759    | 359    | 2359   | 5       |
+| erc721TransferFrom                              | 104212          | 115016 | 118119 | 119616 | 4       |
+| getApproved                                     | 743             | 1466   | 743    | 2743   | 8       |
+| getUnit                                         | 280             | 280    | 280    | 280    | 5       |
+| isApprovedForAll                                | 837             | 1837   | 1837   | 2837   | 2       |
+| mintERC20                                       | 21862           | 63427  | 68150  | 68510  | 19      |
+| mintERC721                                      | 21828           | 125967 | 139337 | 139337 | 30      |
+| name                                            | 3352            | 3352   | 3352   | 3352   | 1       |
+| owned                                           | 950             | 1386   | 1256   | 3372   | 11      |
+| ownerOf                                         | 566             | 566    | 566    | 566    | 7       |
+| safeTransferFrom(address,address,uint256)       | 124585          | 152286 | 152286 | 179988 | 2       |
+| safeTransferFrom(address,address,uint256,bytes) | 125342          | 162993 | 162993 | 200644 | 2       |
+| setApprovalForAll                               | 21885           | 42658  | 46159  | 46159  | 7       |
+| supportsInterface                               | 464             | 489    | 502    | 502    | 3       |
+| symbol                                          | 3284            | 3284   | 3284   | 3284   | 1       |
+| totalSupply                                     | 382             | 1048   | 382    | 2382   | 3       |
+| transfer                                        | 21900           | 28657  | 23096  | 46538  | 4       |
+| transferFrom                                    | 24285           | 52054  | 39715  | 104503 | 4       |
+

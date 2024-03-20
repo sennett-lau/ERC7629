@@ -304,6 +304,12 @@ contract ERC7629Test is Test {
         assertEq(erc7629.totalSupply(), amountToMint);
     }
 
+    function test_erc20_mint_over_uint_reverts() public {
+        erc7629.mintERC20(address(0x1), type(uint256).max);
+        vm.expectRevert(ERC7629.TotalSupplyOverflow.selector);
+        erc7629.mintERC20(address(0x1), 1);
+    }
+
     function test_erc20_mint_to_0_reverts() public {
         vm.expectRevert(abi.encodeWithSelector(ERC7629.ERC20InvalidReceiver.selector, address(0)));
         erc7629.mintERC20(address(0), 10_000);
