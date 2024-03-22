@@ -434,11 +434,11 @@ abstract contract ERC7629 is IERC7629 {
      * @notice Handles minting and burning tokens, preventing overflow and emitting transfer events.
      */
     function _updateERC20(address from, address to, uint256 value) internal virtual {
-        if (from == address(0)) {
-            // Overflow check required: The rest of the code assumes that totalSupply never overflows
-
-            /// @solidity memory-safe-assembly
-            assembly {
+        /// @solidity memory-safe-assembly
+        assembly {
+            switch iszero(from)
+            case 1 {
+                // Overflow check required: The rest of the code assumes that totalSupply never overflows
                 let totalSupplyBefore := sload(_TOTAL_SUPPLY_SLOT)
                 let totalSupplyAfter := add(totalSupplyBefore, value)
                 // Revert if the total supply overflows.
@@ -449,9 +449,7 @@ abstract contract ERC7629 is IERC7629 {
                 // Store the updated total supply.
                 sstore(_TOTAL_SUPPLY_SLOT, totalSupplyAfter)
             }
-        } else {
-            /// @solidity memory-safe-assembly
-            assembly {
+            default {
                 mstore(0x0c, _ERC20_BALANCE_SLOT_SEED)
                 mstore(0x00, from)
 
@@ -468,17 +466,13 @@ abstract contract ERC7629 is IERC7629 {
                 // Subtract and store the updated balance.
                 sstore(fromBalanceSlot, sub(fromBalance, value))
             }
-        }
 
-        if (to == address(0)) {
-            // Overflow not possible: value <= totalSupply or value <= fromBalance <= totalSupply.
-            /// @solidity memory-safe-assembly
-            assembly {
+            switch iszero(to)
+            case 1 {
+                // Overflow not possible: value <= totalSupply or value <= fromBalance <= totalSupply.
                 sstore(_TOTAL_SUPPLY_SLOT, sub(sload(_TOTAL_SUPPLY_SLOT), value))
             }
-        } else {
-            /// @solidity memory-safe-assembly
-            assembly {
+            default {
                 // Compute the balance slot of `to`.
                 mstore(0x0c, _ERC20_BALANCE_SLOT_SEED)
                 mstore(0x00, to)
