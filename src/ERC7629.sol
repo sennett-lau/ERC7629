@@ -16,7 +16,7 @@ abstract contract ERC7629 is IERC7629 {
     // ERC-20 related errors
     error TotalSupplyOverflow();
     error ERC20InvalidSpender(address spender);
-    error ERC20InsufficientAllowance(address spender, uint256 allowance, uint256 needed);
+    error ERC20InsufficientAllowance();
     error ERC20InvalidSender(address sender);
     error ERC20InvalidReceiver(address receiver);
     error ERC20InsufficientBalance();
@@ -41,8 +41,14 @@ abstract contract ERC7629 is IERC7629 {
     /// ```
     uint256 private constant _ERC20_BALANCE_SLOT_SEED = 0xa37c0223;
 
-    // ERC-20 allowances mapping
-    mapping(address => mapping(address => uint256)) private _allowances;
+    /// @dev The balance slot of `owner` is given by:
+    /// ```
+    ///     mstore(0x20, spender)
+    ///     mstore(0x0c, _ERC20_ALLOWANCE_SLOT_SEED)
+    ///     mstore(0x00, owner)
+    ///     let allowanceSlot := keccak256(0x0c, 0x34)
+    /// ```
+    uint256 private constant _ERC20_ALLOWANCE_SLOT_SEED = 0xb9f3e18c;
 
     // Storage slot for the total supply of ERC-20 tokens
     uint256 private constant _TOTAL_SUPPLY_SLOT = 0x05345cdf77eb68f44c;
@@ -178,8 +184,14 @@ abstract contract ERC7629 is IERC7629 {
      * @param owner The address of the token owner.
      * @param spender The address of the spender.
      */
-    function allowance(address owner, address spender) public view returns (uint256) {
-        return _allowances[owner][spender];
+    function allowance(address owner, address spender) public view returns (uint256 result) {
+        /// @solidity memory-safe-assembly
+        assembly {
+            mstore(0x20, spender)
+            mstore(0x0c, _ERC20_ALLOWANCE_SLOT_SEED)
+            mstore(0x00, owner)
+            result := sload(keccak256(0x0c, 0x34))
+        }
     }
 
     /**
@@ -223,7 +235,14 @@ abstract contract ERC7629 is IERC7629 {
             revert ERC20InvalidSpender(spender);
         }
 
-        _allowances[msg.sender][spender] = value;
+        /// @solidity memory-safe-assembly
+        assembly {
+            // Compute the allowance slot and store the value.
+            mstore(0x20, spender)
+            mstore(0x0c, _ERC20_ALLOWANCE_SLOT_SEED)
+            mstore(0x00, caller())
+            sstore(keccak256(0x0c, 0x34), value)
+        }
 
         emit Approval(msg.sender, spender, value);
         emit ERC20Approval(msg.sender, spender, value);
@@ -368,14 +387,23 @@ abstract contract ERC7629 is IERC7629 {
      */
     function _erc20TransferFrom(address from, address to, uint256 value) internal returns (bool) {
         address spender = msg.sender;
-
-        uint256 currentAllowance = allowance(from, spender);
-        if (currentAllowance != type(uint256).max) {
-            if (currentAllowance < value) {
-                revert ERC20InsufficientAllowance(spender, currentAllowance, value);
-            }
-            unchecked {
-                _allowances[from][spender] = currentAllowance - value;
+        /// @solidity memory-safe-assembly
+        assembly {
+            // Compute the allowance slot and load its value.
+            mstore(0x20, spender)
+            mstore(0x0c, _ERC20_ALLOWANCE_SLOT_SEED)
+            mstore(0x00, from)
+            let allowanceSlot := keccak256(0x0c, 0x34)
+            let allowance_ := sload(allowanceSlot)
+            // If the allowance is not the maximum uint256 value.
+            if add(allowance_, 1) {
+                // Revert if the value to be transferred exceeds the allowance.
+                if gt(value, allowance_) {
+                    mstore(0x00, 0x2fc50d60) // `ERC20InsufficientAllowance()`.
+                    revert(0x1c, 0x04)
+                }
+                // Subtract and store the updated allowance.
+                sstore(allowanceSlot, sub(allowance_, value))
             }
         }
         _transferERC20(from, to, value);

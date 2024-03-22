@@ -443,9 +443,7 @@ contract ERC7629Test is Test {
     function test_erc20_transfer_from_with_insufficient_allowance_reverts() public {
         uint256 amountToMint = 10_000 * 1e18;
         erc7629.mintERC20(address(0x1), amountToMint);
-        vm.expectRevert(
-            abi.encodeWithSelector(ERC7629.ERC20InsufficientAllowance.selector, address(this), 0, amountToMint)
-        );
+        vm.expectRevert(ERC7629.ERC20InsufficientAllowance.selector);
         erc7629.erc20TransferFrom(address(0x1), address(0x2), amountToMint);
     }
 
