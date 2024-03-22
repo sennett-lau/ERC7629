@@ -180,7 +180,7 @@ contract ERC7629Test is Test {
 
         address user = address(0x1);
 
-        vm.expectRevert(abi.encodeWithSelector(ERC7629.ERC20InsufficientBalance.selector, user, 0, amountToConvert));
+        vm.expectRevert(ERC7629.ERC20InsufficientBalance.selector);
         vm.prank(user);
         erc7629.erc20ToERC721(amountToConvert);
     }
@@ -333,11 +333,7 @@ contract ERC7629Test is Test {
         uint256 amountToMint = 10_000;
         erc7629.mintERC20(address(0x1), amountToMint);
 
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                ERC7629.ERC20InsufficientBalance.selector, address(0x1), amountToMint, amountToMint + 1
-            )
-        );
+        vm.expectRevert(ERC7629.ERC20InsufficientBalance.selector);
         erc7629.burnERC20(address(0x1), amountToMint + 1);
     }
 
@@ -395,11 +391,7 @@ contract ERC7629Test is Test {
         uint256 amountToMint = 10_000;
         erc7629.mintERC20(address(0x1), amountToMint);
 
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                ERC7629.ERC20InsufficientBalance.selector, address(0x1), amountToMint, amountToMint + 1
-            )
-        );
+        vm.expectRevert(ERC7629.ERC20InsufficientBalance.selector);
         vm.prank(address(0x1));
         erc7629.transfer(address(0x2), amountToMint + 1);
     }

@@ -16,10 +16,14 @@ abstract contract ERC7629 is IERC7629 {
     // ERC-20 related errors
     error TotalSupplyOverflow();
     error ERC20InvalidSpender(address spender);
-    error ERC20InsufficientAllowance(address spender, uint256 allowance, uint256 needed);
+    error ERC20InsufficientAllowance(
+        address spender,
+        uint256 allowance,
+        uint256 needed
+    );
     error ERC20InvalidSender(address sender);
     error ERC20InvalidReceiver(address receiver);
-    error ERC20InsufficientBalance(address sender, uint256 balance, uint256 needed);
+    error ERC20InsufficientBalance();
 
     // Token name
     string private _name;
@@ -33,8 +37,13 @@ abstract contract ERC7629 is IERC7629 {
     // Token unit (for ERC-20 conversion)
     uint256 private immutable _units;
 
-    // ERC-20 balance mapping
-    mapping(address => uint256) private _erc20BalanceOf;
+    /// @dev The balance slot of `owner` is given by:
+    /// ```
+    ///     mstore(0x0c, _ERC20_BALANCE_SLOT_SEED)
+    ///     mstore(0x00, owner)
+    ///     let balanceSlot := keccak256(0x0c, 0x20)
+    /// ```
+    uint256 private constant _ERC20_BALANCE_SLOT_SEED = 0xa37c0223;
 
     // ERC-20 allowances mapping
     mapping(address => mapping(address => uint256)) private _allowances;
@@ -70,7 +79,12 @@ abstract contract ERC7629 is IERC7629 {
      * @param decimals_ The number of decimals used in the token.
      * @param units_ The unit value for ERC-20 conversion.
      */
-    constructor(string memory name_, string memory symbol_, uint8 decimals_, uint256 units_) {
+    constructor(
+        string memory name_,
+        string memory symbol_,
+        uint8 decimals_,
+        uint256 units_
+    ) {
         _name = name_;
         _symbol = symbol_;
         _decimals = decimals_;
@@ -112,8 +126,15 @@ abstract contract ERC7629 is IERC7629 {
      * @dev Returns the balance of an address for ERC-20 tokens.
      * @param owner The address to query the balance of.
      */
-    function balanceOf(address owner) public view virtual returns (uint256) {
-        return _erc20BalanceOf[owner];
+    function balanceOf(
+        address owner
+    ) public view virtual returns (uint256 result) {
+        /// @solidity memory-safe-assembly
+        assembly {
+            mstore(0x0c, _ERC20_BALANCE_SLOT_SEED)
+            mstore(0x00, owner)
+            result := sload(keccak256(0x0c, 0x20))
+        }
     }
 
     /**
@@ -130,8 +151,15 @@ abstract contract ERC7629 is IERC7629 {
      * @dev Returns the balance of an address for ERC-20 tokens.
      * @param owner The address to query the balance of.
      */
-    function erc20BalanceOf(address owner) external view returns (uint256) {
-        return _erc20BalanceOf[owner];
+    function erc20BalanceOf(
+        address owner
+    ) external view returns (uint256 result) {
+        /// @solidity memory-safe-assembly
+        assembly {
+            mstore(0x0c, _ERC20_BALANCE_SLOT_SEED)
+            mstore(0x00, owner)
+            result := sload(keccak256(0x0c, 0x20))
+        }
     }
 
     /**
@@ -154,7 +182,10 @@ abstract contract ERC7629 is IERC7629 {
      * @param owner The address of the token owner.
      * @param operator The address of the operator to check.
      */
-    function isApprovedForAll(address owner, address operator) public view returns (bool) {
+    function isApprovedForAll(
+        address owner,
+        address operator
+    ) public view returns (bool) {
         return _operatorApprovals[owner][operator];
     }
 
@@ -163,7 +194,10 @@ abstract contract ERC7629 is IERC7629 {
      * @param owner The address of the token owner.
      * @param spender The address of the spender.
      */
-    function allowance(address owner, address spender) public view returns (uint256) {
+    function allowance(
+        address owner,
+        address spender
+    ) public view returns (uint256) {
         return _allowances[owner][spender];
     }
 
@@ -179,7 +213,9 @@ abstract contract ERC7629 is IERC7629 {
      * @dev Returns the address that owns a specific ERC-721 token.
      * @param tokenId The token ID.
      */
-    function ownerOf(uint256 tokenId) public view returns (address erc721Owner) {
+    function ownerOf(
+        uint256 tokenId
+    ) public view returns (address erc721Owner) {
         return _owners[tokenId];
     }
 
@@ -188,7 +224,10 @@ abstract contract ERC7629 is IERC7629 {
      * @param spender The address of the spender.
      * @param amountOrId The amount of ERC-20 tokens or ID of ERC-721 tokens.
      */
-    function approve(address spender, uint256 amountOrId) external returns (bool) {
+    function approve(
+        address spender,
+        uint256 amountOrId
+    ) external returns (bool) {
         if (amountOrId > 0 && amountOrId <= minted) {
             _erc721Approve(spender, amountOrId);
         } else {
@@ -203,7 +242,10 @@ abstract contract ERC7629 is IERC7629 {
      * @param value The amount of tokens to be approved for spending.
      * @return True if the approval was successful.
      */
-    function _erc20Approve(address spender, uint256 value) internal returns (bool) {
+    function _erc20Approve(
+        address spender,
+        uint256 value
+    ) internal returns (bool) {
         if (spender == address(0)) {
             revert ERC20InvalidSpender(spender);
         }
@@ -232,7 +274,12 @@ abstract contract ERC7629 is IERC7629 {
      * @param auth The address authorizing the approval.
      * @param emitEvent A boolean indicating whether to emit the Approval event.
      */
-    function _approveERC721(address to, uint256 tokenId, address auth, bool emitEvent) internal virtual {
+    function _approveERC721(
+        address to,
+        uint256 tokenId,
+        address auth,
+        bool emitEvent
+    ) internal virtual {
         if (emitEvent || auth != address(0)) {
             address owner = ownerOf(tokenId);
 
@@ -270,7 +317,9 @@ abstract contract ERC7629 is IERC7629 {
      * @return The address approved to transfer the token.
      * @notice Throws an error if the token does not exist.
      */
-    function getApproved(uint256 tokenId) public view virtual returns (address) {
+    function getApproved(
+        uint256 tokenId
+    ) public view virtual returns (address) {
         address owner = ownerOf(tokenId);
         if (owner == address(0)) {
             revert ERC721NonexistentToken(tokenId);
@@ -284,7 +333,11 @@ abstract contract ERC7629 is IERC7629 {
      * @param to The address to transfer the token to.
      * @param tokenId The ID of the token to transfer.
      */
-    function safeTransferFrom(address from, address to, uint256 tokenId) public {
+    function safeTransferFrom(
+        address from,
+        address to,
+        uint256 tokenId
+    ) public {
         safeTransferFrom(from, to, tokenId, "");
     }
 
@@ -295,7 +348,12 @@ abstract contract ERC7629 is IERC7629 {
      * @param tokenId The ID of the token to transfer.
      * @param data Additional data with no specified format, sent in call to `to`.
      */
-    function safeTransferFrom(address from, address to, uint256 tokenId, bytes memory data) public virtual {
+    function safeTransferFrom(
+        address from,
+        address to,
+        uint256 tokenId,
+        bytes memory data
+    ) public virtual {
         transferFrom(from, to, tokenId);
         _checkOnERC721Received(from, to, tokenId, data);
     }
@@ -308,9 +366,21 @@ abstract contract ERC7629 is IERC7629 {
      * @param data Additional data with no specified format, sent in call to `to`.
      * @notice Throws an error if the recipient is a smart contract and does not implement onERC721Received.
      */
-    function _checkOnERC721Received(address from, address to, uint256 tokenId, bytes memory data) private {
+    function _checkOnERC721Received(
+        address from,
+        address to,
+        uint256 tokenId,
+        bytes memory data
+    ) private {
         if (to.code.length > 0) {
-            try IERC721Receiver(to).onERC721Received(msg.sender, from, tokenId, data) returns (bytes4 retval) {
+            try
+                IERC721Receiver(to).onERC721Received(
+                    msg.sender,
+                    from,
+                    tokenId,
+                    data
+                )
+            returns (bytes4 retval) {
                 if (retval != IERC721Receiver.onERC721Received.selector) {
                     revert ERC721InvalidReceiver(to);
                 }
@@ -334,7 +404,11 @@ abstract contract ERC7629 is IERC7629 {
      * @param amountOrId The amount of tokens (for ERC-20) or the ID of the NFT (for ERC-721) to transfer.
      * @return True if the transfer was successful.
      */
-    function transferFrom(address from, address to, uint256 amountOrId) public returns (bool) {
+    function transferFrom(
+        address from,
+        address to,
+        uint256 amountOrId
+    ) public returns (bool) {
         if (amountOrId <= minted) {
             _erc721TransferFrom(from, to, amountOrId);
         } else {
@@ -351,13 +425,21 @@ abstract contract ERC7629 is IERC7629 {
      * @param value The amount of tokens to transfer.
      * @return True if the transfer was successful.
      */
-    function _erc20TransferFrom(address from, address to, uint256 value) internal returns (bool) {
+    function _erc20TransferFrom(
+        address from,
+        address to,
+        uint256 value
+    ) internal returns (bool) {
         address spender = msg.sender;
 
         uint256 currentAllowance = allowance(from, spender);
         if (currentAllowance != type(uint256).max) {
             if (currentAllowance < value) {
-                revert ERC20InsufficientAllowance(spender, currentAllowance, value);
+                revert ERC20InsufficientAllowance(
+                    spender,
+                    currentAllowance,
+                    value
+                );
             }
             unchecked {
                 _allowances[from][spender] = currentAllowance - value;
@@ -390,7 +472,11 @@ abstract contract ERC7629 is IERC7629 {
      * @param value The amount of ERC-20 tokens to transfer.
      * @notice Handles minting and burning tokens, preventing overflow and emitting transfer events.
      */
-    function _updateERC20(address from, address to, uint256 value) internal virtual {
+    function _updateERC20(
+        address from,
+        address to,
+        uint256 value
+    ) internal virtual {
         if (from == address(0)) {
             // Overflow check required: The rest of the code assumes that totalSupply never overflows
 
@@ -407,13 +493,23 @@ abstract contract ERC7629 is IERC7629 {
                 sstore(_TOTAL_SUPPLY_SLOT, totalSupplyAfter)
             }
         } else {
-            uint256 fromBalance = _erc20BalanceOf[from];
-            if (fromBalance < value) {
-                revert ERC20InsufficientBalance(from, fromBalance, value);
-            }
-            unchecked {
+            /// @solidity memory-safe-assembly
+            assembly {
+                mstore(0x0c, _ERC20_BALANCE_SLOT_SEED)
+                mstore(0x00, from)
+
+                let fromBalanceSlot := keccak256(0x0c, 0x20)
+                let fromBalance := sload(fromBalanceSlot)
+
+                if gt(value, fromBalance) {
+                    let ptr := mload(0x40)
+                    mstore(0x00, 0x590b7c5c) // `ERC20InsufficientBalance()`.
+                    revert(0x1c, 0x04)
+                }
+
                 // Overflow not possible: value <= fromBalance <= totalSupply.
-                _erc20BalanceOf[from] = fromBalance - value;
+                // Subtract and store the updated balance.
+                sstore(fromBalanceSlot, sub(fromBalance, value))
             }
         }
 
@@ -421,12 +517,22 @@ abstract contract ERC7629 is IERC7629 {
             // Overflow not possible: value <= totalSupply or value <= fromBalance <= totalSupply.
             /// @solidity memory-safe-assembly
             assembly {
-                sstore(_TOTAL_SUPPLY_SLOT, sub(sload(_TOTAL_SUPPLY_SLOT), value))
+                sstore(
+                    _TOTAL_SUPPLY_SLOT,
+                    sub(sload(_TOTAL_SUPPLY_SLOT), value)
+                )
             }
         } else {
-            unchecked {
-                // Overflow not possible: balance + value is at most totalSupply, which we know fits into a uint256.
-                _erc20BalanceOf[to] += value;
+            /// @solidity memory-safe-assembly
+            assembly {
+                // Compute the balance slot of `to`.
+                mstore(0x0c, _ERC20_BALANCE_SLOT_SEED)
+                mstore(0x00, to)
+                let toBalanceSlot := keccak256(0x0c, 0x20)
+                // Add and store the updated balance of `to`.
+                // Will not overflow because the sum of all user balances
+                // cannot exceed the maximum uint256 value.
+                sstore(toBalanceSlot, add(sload(toBalanceSlot), value))
             }
         }
 
@@ -439,7 +545,11 @@ abstract contract ERC7629 is IERC7629 {
      * @param to The address to transfer ERC-721 token to.
      * @param tokenId The ID of the ERC-721 token to transfer.
      */
-    function _erc721TransferFrom(address from, address to, uint256 tokenId) internal {
+    function _erc721TransferFrom(
+        address from,
+        address to,
+        uint256 tokenId
+    ) internal {
         if (to == address(0)) {
             revert ERC721InvalidReceiver(address(0));
         }
@@ -459,7 +569,10 @@ abstract contract ERC7629 is IERC7629 {
      * @return The address from which the token is transferred.
      * @notice Clears approval, updates balances, and emits transfer events.
      */
-    function _updateERC721(address to, uint256 tokenId) internal virtual returns (address) {
+    function _updateERC721(
+        address to,
+        uint256 tokenId
+    ) internal virtual returns (address) {
         address from = ownerOf(tokenId);
 
         // Execute the update
@@ -586,7 +699,9 @@ abstract contract ERC7629 is IERC7629 {
 
         _burnERC20(msg.sender, ftAmount);
 
-        uint256 nftMintAmount = _owned[address(this)].length < nftAmount ? nftAmount - _owned[address(this)].length : 0;
+        uint256 nftMintAmount = _owned[address(this)].length < nftAmount
+            ? nftAmount - _owned[address(this)].length
+            : 0;
         uint256 nftTransferAmount = nftAmount - nftMintAmount;
 
         uint256[] memory tokenIds = new uint256[](nftAmount);
@@ -598,7 +713,9 @@ abstract contract ERC7629 is IERC7629 {
         }
 
         for (uint256 i = 0; i < nftTransferAmount; i++) {
-            uint256 tokenId = _owned[address(this)][_owned[address(this)].length - 1];
+            uint256 tokenId = _owned[address(this)][
+                _owned[address(this)].length - 1
+            ];
             _updateERC721(msg.sender, tokenId);
             tokenIds[i + nftMintAmount] = tokenId;
         }
@@ -618,7 +735,11 @@ abstract contract ERC7629 is IERC7629 {
      * @param interfaceId The interface identifier.
      * @return True if the contract supports the given interface, false otherwise.
      */
-    function supportsInterface(bytes4 interfaceId) public view virtual returns (bool) {
-        return interfaceId == type(IERC7629).interfaceId || interfaceId == type(IERC165).interfaceId;
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view virtual returns (bool) {
+        return
+            interfaceId == type(IERC7629).interfaceId ||
+            interfaceId == type(IERC165).interfaceId;
     }
 }
