@@ -41,7 +41,7 @@ abstract contract ERC7629 is IERC7629 {
     /// ```
     uint256 private constant _ERC20_BALANCE_SLOT_SEED = 0xa37c0223;
 
-    /// @dev The balance slot of `owner` is given by:
+    /// @dev The allowance slot of (`owner`, `spender`) is given by:
     /// ```
     ///     mstore(0x20, spender)
     ///     mstore(0x0c, _ERC20_ALLOWANCE_SLOT_SEED)
