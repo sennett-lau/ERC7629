@@ -17,8 +17,8 @@ abstract contract ERC7629 is IERC7629 {
     error TotalSupplyOverflow();
     error ERC20InvalidSpender(address spender);
     error ERC20InsufficientAllowance();
-    error ERC20InvalidSender(address sender);
-    error ERC20InvalidReceiver(address receiver);
+    error ERC20InvalidSender();
+    error ERC20InvalidReceiver();
     error ERC20InsufficientBalance();
 
     // Token name
@@ -417,12 +417,18 @@ abstract contract ERC7629 is IERC7629 {
      * @param value The amount of tokens to transfer.
      */
     function _transferERC20(address from, address to, uint256 value) internal {
-        if (from == address(0)) {
-            revert ERC20InvalidSender(address(0));
+        /// @solidity memory-safe-assembly
+        assembly {
+            if iszero(from) {
+                mstore(0x00, 0x5b168993) // `ERC20InvalidSender()`.
+                revert(0x1c, 0x04)
+            }
+            if iszero(to) {
+                mstore(0x00, 0x04786ad1) // `ERC20InvalidReceiver()`.
+                revert(0x1c, 0x04)
+            }
         }
-        if (to == address(0)) {
-            revert ERC20InvalidReceiver(address(0));
-        }
+
         _updateERC20(from, to, value);
     }
 
@@ -569,8 +575,12 @@ abstract contract ERC7629 is IERC7629 {
      * @notice Prevents minting tokens to address(0).
      */
     function _mintERC20(address account, uint256 value) internal {
-        if (account == address(0)) {
-            revert ERC20InvalidReceiver(address(0));
+        /// @solidity memory-safe-assembly
+        assembly {
+            if iszero(account) {
+                mstore(0x00, 0x04786ad1) // `ERC20InvalidReceiver()`.
+                revert(0x1c, 0x04)
+            }
         }
         _updateERC20(address(0), account, value);
     }
@@ -582,8 +592,12 @@ abstract contract ERC7629 is IERC7629 {
      * @notice Prevents burning tokens from address(0).
      */
     function _burnERC20(address account, uint256 value) internal {
-        if (account == address(0)) {
-            revert ERC20InvalidSender(address(0));
+        /// @solidity memory-safe-assembly
+        assembly {
+            if iszero(account) {
+                mstore(0x00, 0x5b168993) // `ERC20InvalidSender()`.
+                revert(0x1c, 0x04)
+            }
         }
         _updateERC20(account, address(0), value);
     }
