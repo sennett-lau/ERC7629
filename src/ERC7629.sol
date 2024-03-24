@@ -16,10 +16,10 @@ abstract contract ERC7629 is IERC7629 {
     // ERC-20 related errors
     error TotalSupplyOverflow();
     error ERC20InvalidSpender(address spender);
-    error ERC20InsufficientAllowance(address spender, uint256 allowance, uint256 needed);
+    error ERC20InsufficientAllowance();
     error ERC20InvalidSender(address sender);
     error ERC20InvalidReceiver(address receiver);
-    error ERC20InsufficientBalance(address sender, uint256 balance, uint256 needed);
+    error ERC20InsufficientBalance();
 
     // Token name
     string private _name;
@@ -33,11 +33,22 @@ abstract contract ERC7629 is IERC7629 {
     // Token unit (for ERC-20 conversion)
     uint256 private immutable _units;
 
-    // ERC-20 balance mapping
-    mapping(address => uint256) private _erc20BalanceOf;
+    /// @dev The balance slot of `owner` is given by:
+    /// ```
+    ///     mstore(0x0c, _ERC20_BALANCE_SLOT_SEED)
+    ///     mstore(0x00, owner)
+    ///     let balanceSlot := keccak256(0x0c, 0x20)
+    /// ```
+    uint256 private constant _ERC20_BALANCE_SLOT_SEED = 0xa37c0223;
 
-    // ERC-20 allowances mapping
-    mapping(address => mapping(address => uint256)) private _allowances;
+    /// @dev The allowance slot of (`owner`, `spender`) is given by:
+    /// ```
+    ///     mstore(0x20, spender)
+    ///     mstore(0x0c, _ERC20_ALLOWANCE_SLOT_SEED)
+    ///     mstore(0x00, owner)
+    ///     let allowanceSlot := keccak256(0x0c, 0x34)
+    /// ```
+    uint256 private constant _ERC20_ALLOWANCE_SLOT_SEED = 0xb9f3e18c;
 
     // Storage slot for the total supply of ERC-20 tokens
     uint256 private constant _TOTAL_SUPPLY_SLOT = 0x05345cdf77eb68f44c;
@@ -112,8 +123,13 @@ abstract contract ERC7629 is IERC7629 {
      * @dev Returns the balance of an address for ERC-20 tokens.
      * @param owner The address to query the balance of.
      */
-    function balanceOf(address owner) public view virtual returns (uint256) {
-        return _erc20BalanceOf[owner];
+    function balanceOf(address owner) public view virtual returns (uint256 result) {
+        /// @solidity memory-safe-assembly
+        assembly {
+            mstore(0x0c, _ERC20_BALANCE_SLOT_SEED)
+            mstore(0x00, owner)
+            result := sload(keccak256(0x0c, 0x20))
+        }
     }
 
     /**
@@ -130,8 +146,13 @@ abstract contract ERC7629 is IERC7629 {
      * @dev Returns the balance of an address for ERC-20 tokens.
      * @param owner The address to query the balance of.
      */
-    function erc20BalanceOf(address owner) external view returns (uint256) {
-        return _erc20BalanceOf[owner];
+    function erc20BalanceOf(address owner) external view returns (uint256 result) {
+        /// @solidity memory-safe-assembly
+        assembly {
+            mstore(0x0c, _ERC20_BALANCE_SLOT_SEED)
+            mstore(0x00, owner)
+            result := sload(keccak256(0x0c, 0x20))
+        }
     }
 
     /**
@@ -163,8 +184,14 @@ abstract contract ERC7629 is IERC7629 {
      * @param owner The address of the token owner.
      * @param spender The address of the spender.
      */
-    function allowance(address owner, address spender) public view returns (uint256) {
-        return _allowances[owner][spender];
+    function allowance(address owner, address spender) public view returns (uint256 result) {
+        /// @solidity memory-safe-assembly
+        assembly {
+            mstore(0x20, spender)
+            mstore(0x0c, _ERC20_ALLOWANCE_SLOT_SEED)
+            mstore(0x00, owner)
+            result := sload(keccak256(0x0c, 0x34))
+        }
     }
 
     /**
@@ -208,7 +235,14 @@ abstract contract ERC7629 is IERC7629 {
             revert ERC20InvalidSpender(spender);
         }
 
-        _allowances[msg.sender][spender] = value;
+        /// @solidity memory-safe-assembly
+        assembly {
+            // Compute the allowance slot and store the value.
+            mstore(0x20, spender)
+            mstore(0x0c, _ERC20_ALLOWANCE_SLOT_SEED)
+            mstore(0x00, caller())
+            sstore(keccak256(0x0c, 0x34), value)
+        }
 
         emit Approval(msg.sender, spender, value);
         emit ERC20Approval(msg.sender, spender, value);
@@ -353,14 +387,23 @@ abstract contract ERC7629 is IERC7629 {
      */
     function _erc20TransferFrom(address from, address to, uint256 value) internal returns (bool) {
         address spender = msg.sender;
-
-        uint256 currentAllowance = allowance(from, spender);
-        if (currentAllowance != type(uint256).max) {
-            if (currentAllowance < value) {
-                revert ERC20InsufficientAllowance(spender, currentAllowance, value);
-            }
-            unchecked {
-                _allowances[from][spender] = currentAllowance - value;
+        /// @solidity memory-safe-assembly
+        assembly {
+            // Compute the allowance slot and load its value.
+            mstore(0x20, spender)
+            mstore(0x0c, _ERC20_ALLOWANCE_SLOT_SEED)
+            mstore(0x00, from)
+            let allowanceSlot := keccak256(0x0c, 0x34)
+            let allowance_ := sload(allowanceSlot)
+            // If the allowance is not the maximum uint256 value.
+            if add(allowance_, 1) {
+                // Revert if the value to be transferred exceeds the allowance.
+                if gt(value, allowance_) {
+                    mstore(0x00, 0x2fc50d60) // `ERC20InsufficientAllowance()`.
+                    revert(0x1c, 0x04)
+                }
+                // Subtract and store the updated allowance.
+                sstore(allowanceSlot, sub(allowance_, value))
             }
         }
         _transferERC20(from, to, value);
@@ -407,13 +450,23 @@ abstract contract ERC7629 is IERC7629 {
                 sstore(_TOTAL_SUPPLY_SLOT, totalSupplyAfter)
             }
         } else {
-            uint256 fromBalance = _erc20BalanceOf[from];
-            if (fromBalance < value) {
-                revert ERC20InsufficientBalance(from, fromBalance, value);
-            }
-            unchecked {
+            /// @solidity memory-safe-assembly
+            assembly {
+                mstore(0x0c, _ERC20_BALANCE_SLOT_SEED)
+                mstore(0x00, from)
+
+                let fromBalanceSlot := keccak256(0x0c, 0x20)
+                let fromBalance := sload(fromBalanceSlot)
+
+                if gt(value, fromBalance) {
+                    let ptr := mload(0x40)
+                    mstore(0x00, 0x590b7c5c) // `ERC20InsufficientBalance()`.
+                    revert(0x1c, 0x04)
+                }
+
                 // Overflow not possible: value <= fromBalance <= totalSupply.
-                _erc20BalanceOf[from] = fromBalance - value;
+                // Subtract and store the updated balance.
+                sstore(fromBalanceSlot, sub(fromBalance, value))
             }
         }
 
@@ -424,9 +477,16 @@ abstract contract ERC7629 is IERC7629 {
                 sstore(_TOTAL_SUPPLY_SLOT, sub(sload(_TOTAL_SUPPLY_SLOT), value))
             }
         } else {
-            unchecked {
-                // Overflow not possible: balance + value is at most totalSupply, which we know fits into a uint256.
-                _erc20BalanceOf[to] += value;
+            /// @solidity memory-safe-assembly
+            assembly {
+                // Compute the balance slot of `to`.
+                mstore(0x0c, _ERC20_BALANCE_SLOT_SEED)
+                mstore(0x00, to)
+                let toBalanceSlot := keccak256(0x0c, 0x20)
+                // Add and store the updated balance of `to`.
+                // Will not overflow because the sum of all user balances
+                // cannot exceed the maximum uint256 value.
+                sstore(toBalanceSlot, add(sload(toBalanceSlot), value))
             }
         }
 
