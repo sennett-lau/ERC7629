@@ -252,14 +252,17 @@ abstract contract ERC7629 is IERC7629 {
      */
     function owned(address owner) external view returns (uint256[] memory result) {
         uint256 tokenCount = _erc721BalanceOf(owner);
+
+        result = new uint256[](tokenCount);
+
         assembly {
             // Setup for the first slot calculation
             mstore(0x1c, _ERC721_OWNED_SLOT_SEED)
             mstore(0x00, owner)
-            let firstSlot := keccak256(0x0c, 0x1c)
+            let firstSlot := keccak256(0x1c, 0x20)
 
             // Iterate over each token owned by the owner, starting from the first token
-            for { let i := 0 } lt(i, tokenCount) { i := add(i, 1) } {
+            for { let i := 0x0 } lt(i, tokenCount) { i := add(i, 0x1) } {
                 // For each subsequent token, calculate its slot based on the firstSlot and index
                 let tokenIdSlot := add(firstSlot, i)
 
