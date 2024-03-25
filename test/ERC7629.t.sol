@@ -223,7 +223,7 @@ contract ERC7629Test is Test {
         vm.prank(user);
         erc7629.approve(spender, tokenId);
 
-        // // check approval
+        // check approval
         approved = erc7629.getApproved(tokenId);
         assertEq(approved, spender);
 
@@ -543,7 +543,7 @@ contract ERC7629Test is Test {
     }
 
     function test_get_approved_with_non_exist_token() public {
-        vm.expectRevert(abi.encodeWithSelector(ERC7629.ERC721NonexistentToken.selector, 1));
+        vm.expectRevert(ERC7629.ERC721NonexistentToken.selector);
         erc7629.getApproved(1);
     }
 
@@ -566,7 +566,7 @@ contract ERC7629Test is Test {
     function test_erc721_approve_with_invalid_approver_reverts() public {
         erc7629.mintERC721(address(0x1), 1);
 
-        vm.expectRevert(abi.encodeWithSelector(ERC7629.ERC721InvalidApprover.selector, address(this)));
+        vm.expectRevert(ERC7629.ERC721InvalidApprover.selector);
         erc7629.erc721Approve(address(0x2), 1);
     }
 
@@ -585,7 +585,7 @@ contract ERC7629Test is Test {
     }
 
     function test_set_approval_for_all_with_invalid_operator_reverts() public {
-        vm.expectRevert(abi.encodeWithSelector(ERC7629.ERC721InvalidOperator.selector, address(0)));
+        vm.expectRevert(ERC7629.ERC721InvalidOperator.selector);
         erc7629.setApprovalForAll(address(0), true);
     }
 
@@ -621,7 +621,7 @@ contract ERC7629Test is Test {
     }
 
     function test_erc721_transfer_from_non_exist_token_reverts() public {
-        vm.expectRevert(abi.encodeWithSelector(ERC7629.ERC721NonexistentToken.selector, 1));
+        vm.expectRevert(ERC7629.ERC721NonexistentToken.selector);
         erc7629.erc721TransferFrom(address(0x1), address(0x2), 1);
     }
 
@@ -703,11 +703,13 @@ contract ERC7629Test is Test {
         erc7629.burnERC721(1);
 
         assertEq(erc7629.owned(from).length, 0);
+
+        vm.expectRevert(ERC7629.ERC721NonexistentToken.selector);
         assertEq(erc7629.ownerOf(1), address(0));
     }
 
     function test_burn_erc721_non_minted_token_reverts() public {
-        vm.expectRevert(abi.encodeWithSelector(ERC7629.ERC721NonexistentToken.selector, 1));
+        vm.expectRevert(ERC7629.ERC721NonexistentToken.selector);
         erc7629.burnERC721(1);
     }
 
