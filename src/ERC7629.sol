@@ -11,7 +11,7 @@ abstract contract ERC7629 is IERC7629 {
     error ERC721InvalidSender(address receiver);
     error ERC721InvalidReceiver(address receiver);
     error ERC721IncorrectOwner(address sender, uint256 tokenId, address owner);
-    error ERC721NonexistentToken(uint256 tokenId);
+    error ERC721NonexistentToken();
     error ERC721AccountBalanceOverflow();
 
     // ERC-20 related errors
@@ -281,7 +281,7 @@ abstract contract ERC7629 is IERC7629 {
         /// @solidity memory-safe-assembly
         assembly {
             if iszero(result) {
-                mstore(0x00, 0xceea21b6) // `TokenDoesNotExist()`.
+                mstore(0x00, 0x52f4210a) // `ERC721NonexistentToken()`.
                 revert(0x1c, 0x04)
             }
         }
@@ -423,7 +423,7 @@ abstract contract ERC7629 is IERC7629 {
             mstore(0x1c, _ERC721_MASTER_SLOT_SEED)
             let ownershipSlot := add(tokenId, add(tokenId, keccak256(0x00, 0x20)))
             if iszero(shl(96, sload(ownershipSlot))) {
-                mstore(0x00, 0xceea21b6) // `TokenDoesNotExist()`.
+                mstore(0x00, 0x52f4210a) // `ERC721NonexistentToken()`.
                 revert(0x1c, 0x04)
             }
             result := sload(add(1, ownershipSlot))
@@ -624,7 +624,7 @@ abstract contract ERC7629 is IERC7629 {
 
         address previousOwner = _updateERC721(to, tokenId);
         if (previousOwner == address(0)) {
-            revert ERC721NonexistentToken(tokenId);
+            revert ERC721NonexistentToken();
         } else if (previousOwner != from) {
             revert ERC721IncorrectOwner(from, tokenId, previousOwner);
         }
@@ -808,7 +808,7 @@ abstract contract ERC7629 is IERC7629 {
     function _burnERC721(uint256 tokenId) internal {
         address previousOwner = _updateERC721(address(0), tokenId);
         if (previousOwner == address(0)) {
-            revert ERC721NonexistentToken(tokenId);
+            revert ERC721NonexistentToken();
         }
     }
 
