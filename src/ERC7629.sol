@@ -867,8 +867,9 @@ abstract contract ERC7629 is IERC7629 {
             tokenIds[i] = tokenId;
         }
 
+        uint256 tokenCount = _erc721BalanceOf(msg.sender);
         for (uint256 i = 0; i < nftTransferAmount; i++) {
-            uint256 tokenId = _getLastTokenId(address(this));
+            uint256 tokenId = _getTokenIdAtIndex(address(this), tokenCount - i - 1);
             _updateERC721(msg.sender, tokenId);
             tokenIds[i + nftMintAmount] = tokenId;
         }
@@ -893,12 +894,12 @@ abstract contract ERC7629 is IERC7629 {
     }
 
     /**
-     * @dev Get last token of the ERC-721 tokenIds array owned by a specific address.
+     * @dev Get the token ID at the specified index in the array of tokens owned by the address.
      * @param owner The address to query the tokens of.
+     * @param index The index of the token in the array.
      * @notice Return the last token ID owned by the address.
      */
-    function _getLastTokenId(address owner) internal view returns (uint256 tokenId) {
-        uint256 tokenCount = _erc721BalanceOf(owner);
+    function _getTokenIdAtIndex(address owner, uint256 index) internal view returns (uint256 tokenId) {
         assembly {
             // Setup for the first slot calculation
             mstore(0x1c, _ERC721_OWNED_SLOT_SEED)
@@ -906,7 +907,7 @@ abstract contract ERC7629 is IERC7629 {
             let firstSlot := keccak256(0x1c, 0x20)
 
             // Get the last token ID owned by the owner
-            tokenId := sload(add(firstSlot, sub(tokenCount, 1)))
+            tokenId := sload(add(firstSlot, index))
         }
     }
 }
