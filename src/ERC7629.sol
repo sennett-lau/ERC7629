@@ -648,6 +648,8 @@ abstract contract ERC7629 is IERC7629 {
             to := and(bitmaskAddress, to)
 
             // Load the ownership data.
+            mstore(0x00, tokenId)
+            mstore(0x1c, or(_ERC721_MASTER_SLOT_SEED, caller()))
             let ownershipSlot := add(tokenId, add(tokenId, keccak256(0x00, 0x20)))
             let ownershipPacked := sload(ownershipSlot)
             from := and(bitmaskAddress, ownershipPacked)
@@ -661,6 +663,7 @@ abstract contract ERC7629 is IERC7629 {
 
                 // Decrement the balance of `from`.
                 {
+                    mstore(0x1c, _ERC721_MASTER_SLOT_SEED)
                     mstore(0x00, from)
                     let fromBalanceSlot := keccak256(0x0c, 0x1c)
                     sstore(fromBalanceSlot, sub(sload(fromBalanceSlot), 1))
