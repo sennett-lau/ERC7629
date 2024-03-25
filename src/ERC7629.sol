@@ -371,8 +371,12 @@ abstract contract ERC7629 is IERC7629 {
             // If `auth` is not the zero address or emitEvent, do the authorization check.
             // Revert if `auth` is not the owner, nor approved.
             if or(iszero(iszero(emitEvent)), iszero(or(iszero(auth), eq(auth, owner)))) {
+                mstore(0x1c, auth)
+                mstore(0x08, _ERC721_MASTER_SLOT_SEED_MASKED)
                 mstore(0x00, owner)
-                if iszero(sload(keccak256(0x0c, 0x30))) {
+
+                // if (owner != auth && !isApprovedForAll(owner, auth))
+                if and(iszero(eq(owner, auth)), iszero(sload(keccak256(0x0c, 0x30)))) {
                     mstore(0x00, 0xbd92be0e) // `ERC721InvalidApprover()`.
                     revert(0x1c, 0x04)
                 }
