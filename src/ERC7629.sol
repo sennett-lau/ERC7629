@@ -675,9 +675,8 @@ abstract contract ERC7629 is IERC7629 {
             // if from is not 0
             if iszero(iszero(from)) {
                 // Clear approval. No need to re-authorize or emit the Approval event
-                let approvedAddress := sload(add(1, ownershipSlot))
                 // Delete the approved address if any.
-                if approvedAddress { sstore(add(1, ownershipSlot), 0) }
+                if sload(add(1, ownershipSlot)) { sstore(add(1, ownershipSlot), 0) }
 
                 // Decrement the balance of `from`.
                 {
