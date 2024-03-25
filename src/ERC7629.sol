@@ -855,8 +855,8 @@ abstract contract ERC7629 is IERC7629 {
 
         _burnERC20(msg.sender, amount);
 
-        uint256 nftMintAmount =
-            _erc721BalanceOf(address(this)) < nftAmount ? nftAmount - _erc721BalanceOf(address(this)) : 0;
+        uint256 amountSwappable = _erc721BalanceOf(address(this));
+        uint256 nftMintAmount = amountSwappable < nftAmount ? nftAmount - amountSwappable : 0;
         uint256 nftTransferAmount = nftAmount - nftMintAmount;
 
         uint256[] memory tokenIds = new uint256[](nftAmount);
