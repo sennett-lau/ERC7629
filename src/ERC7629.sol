@@ -94,9 +94,27 @@ abstract contract ERC7629 is IERC7629 {
     uint256 private constant _ERC721_MASTER_SLOT_SEED_MASKED = 0x0a5a2e7a00000000;
 
     /// @dev The owned data slot seed for ERC-721 tokens. Original tokenIds uint256[].
+    /// The first slot is given by:
+    /// ```
+    ///    mstore(0x1c, _ERC721_OWNED_SLOT_SEED)
+    ///    mstore(0x00, owner)
+    ///    let firstSlot := keccak256(0x1c, 0x20)
+    /// ```
+    ///
+    /// Additional tokenIds are stored in subsequent slots.
+    /// Take the first slot and add the index to get the subsequent slots.
+    /// ```
+    ///    let tokenIdSlot := add(firstSlot, index)
+    /// ```
     uint256 private constant _ERC721_OWNED_SLOT_SEED = 0xaad1f1e3d5ff0d06;
 
     /// @dev The owned index slot seed for ERC-721 tokens.
+    /// The owned index slot is given by:
+    /// ```
+    ///    mstore(0x1c, _ERC721_OWNED_INDEX_SLOT_SEED)
+    ///    mstore(0x00, tokenId)
+    ///    let indexSlot := keccak256(0x0c, 0x1c)
+    /// ```
     uint256 private constant _ERC721_OWNED_INDEX_SLOT_SEED = 0x70c5f0ea1f688ebb;
 
     // Counter for minted ERC-721 tokens
