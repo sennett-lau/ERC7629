@@ -698,6 +698,7 @@ abstract contract ERC7629 is IERC7629 {
             if iszero(iszero(to)) {
                 // Increment the balance of `to`.
                 {
+                    mstore(0x1c, _ERC721_MASTER_SLOT_SEED)
                     mstore(0x00, to)
                     let toBalanceSlot := keccak256(0x0c, 0x1c)
                     let toBalance := sload(toBalanceSlot)
