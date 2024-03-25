@@ -1,24 +1,24 @@
 | test/mock/ERC7629Mock.sol:ERC7629Mock contract  |                 |        |        |        |         |
 |-------------------------------------------------|-----------------|--------|--------|--------|---------|
 | Deployment Cost                                 | Deployment Size |        |        |        |         |
-| 1615673                                         | 8422            |        |        |        |         |
+| 1615013                                         | 8419            |        |        |        |         |
 | Function Name                                   | min             | avg    | median | max    | # calls |
 | allowance                                       | 769             | 769    | 769    | 769    | 3       |
 | approve                                         | 50195           | 51712  | 50351  | 54591  | 3       |
 | balanceOf                                       | 611             | 1611   | 1611   | 2611   | 2       |
 | burnERC20                                       | 21822           | 24348  | 24075  | 27149  | 3       |
-| burnERC721                                      | 27933           | 30062  | 30062  | 32192  | 2       |
+| burnERC721                                      | 27933           | 30059  | 30059  | 32185  | 2       |
 | decimals                                        | 251             | 251    | 251    | 251    | 1       |
 | erc20Approve                                    | 21949           | 39385  | 47953  | 48253  | 3       |
 | erc20BalanceOf                                  | 591             | 591    | 591    | 591    | 11      |
-| erc20ToERC721                                   | 23951           | 251255 | 125012 | 604804 | 3       |
+| erc20ToERC721                                   | 23951           | 251242 | 125012 | 604764 | 3       |
 | erc20TotalSupply                                | 360             | 1360   | 1360   | 2360   | 2       |
 | erc20TransferFrom                               | 24374           | 35715  | 35715  | 47057  | 2       |
 | erc721Approve                                   | 26294           | 39323  | 39323  | 52352  | 2       |
 | erc721BalanceOf                                 | 737             | 903    | 737    | 2737   | 12      |
-| erc721ToERC20                                   | 96038           | 103604 | 98838  | 130238 | 6       |
+| erc721ToERC20                                   | 96030           | 103596 | 98830  | 130230 | 6       |
 | erc721TotalSupply                               | 359             | 759    | 359    | 2359   | 5       |
-| erc721TransferFrom                              | 82646           | 89490  | 90172  | 94973  | 4       |
+| erc721TransferFrom                              | 82638           | 89484  | 90164  | 94973  | 4       |
 | getApproved                                     | 665             | 1391   | 665    | 2665   | 8       |
 | getUnit                                         | 280             | 280    | 280    | 280    | 5       |
 | isApprovedForAll                                | 726             | 1726   | 1726   | 2726   | 2       |
@@ -27,12 +27,12 @@
 | name                                            | 3352            | 3352   | 3352   | 3352   | 1       |
 | owned                                           | 1084            | 1547   | 1389   | 3784   | 11      |
 | ownerOf                                         | 509             | 578    | 590    | 590    | 7       |
-| safeTransferFrom(address,address,uint256)       | 93419           | 125920 | 125920 | 158422 | 2       |
-| safeTransferFrom(address,address,uint256,bytes) | 94176           | 136627 | 136627 | 179078 | 2       |
+| safeTransferFrom(address,address,uint256)       | 93411           | 125912 | 125912 | 158414 | 2       |
+| safeTransferFrom(address,address,uint256,bytes) | 94168           | 136619 | 136619 | 179070 | 2       |
 | setApprovalForAll                               | 21761           | 42534  | 46035  | 46035  | 7       |
 | supportsInterface                               | 464             | 489    | 502    | 502    | 3       |
 | symbol                                          | 3351            | 3351   | 3351   | 3351   | 1       |
 | totalSupply                                     | 382             | 1048   | 382    | 2382   | 3       |
 | transfer                                        | 21794           | 28497  | 22925  | 46344  | 4       |
-| transferFrom                                    | 24285           | 46505  | 39343  | 83049  | 4       |
+| transferFrom                                    | 24285           | 46503  | 39343  | 83041  | 4       |
 
