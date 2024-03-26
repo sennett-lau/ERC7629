@@ -6,19 +6,20 @@ import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 
 abstract contract ERC7629 is IERC7629 {
     // ERC-721 related errors
-    error ERC721InvalidApprover(address approver);
-    error ERC721InvalidOperator(address operator);
+    error ERC721InvalidApprover();
+    error ERC721InvalidOperator();
     error ERC721InvalidSender(address receiver);
     error ERC721InvalidReceiver(address receiver);
     error ERC721IncorrectOwner(address sender, uint256 tokenId, address owner);
-    error ERC721NonexistentToken(uint256 tokenId);
+    error ERC721NonexistentToken();
+    error ERC721AccountBalanceOverflow();
 
     // ERC-20 related errors
     error TotalSupplyOverflow();
     error ERC20InvalidSpender(address spender);
     error ERC20InsufficientAllowance();
-    error ERC20InvalidSender(address sender);
-    error ERC20InvalidReceiver(address receiver);
+    error ERC20InvalidSender();
+    error ERC20InvalidReceiver();
     error ERC20InsufficientBalance();
 
     // Token name
@@ -53,23 +54,68 @@ abstract contract ERC7629 is IERC7629 {
     // Storage slot for the total supply of ERC-20 tokens
     uint256 private constant _TOTAL_SUPPLY_SLOT = 0x05345cdf77eb68f44c;
 
+    /// @dev An account can hold up to 4294967295 tokens.
+    uint256 internal constant _MAX_ACCOUNT_BALANCE = 0xffffffff;
+
     // ERC-721 balance mapping
-    mapping(address => uint256) private _erc721BalanceOf;
+    /// @dev The ownership data slot of `id` is given by:
+    /// ```
+    ///     mstore(0x00, id)
+    ///     mstore(0x1c, _ERC721_MASTER_SLOT_SEED)
+    ///     let ownershipSlot := add(id, add(id, keccak256(0x00, 0x20)))
+    /// ```
+    /// Bits Layout:
+    /// - [0..159]   `addr`
+    /// - [160..255] `extraData`
+    ///
+    /// The approved address slot is given by: `add(1, ownershipSlot)`.
+    ///
+    /// See: https://notes.ethereum.org/%40vbuterin/verkle_tree_eip
+    ///
+    /// The balance slot of `owner` is given by:
+    /// ```
+    ///     mstore(0x1c, _ERC721_MASTER_SLOT_SEED)
+    ///     mstore(0x00, owner)
+    ///     let balanceSlot := keccak256(0x0c, 0x1c)
+    /// ```
+    /// Bits Layout:
+    /// - [0..31]   `balance`
+    /// - [32..255] `aux`
+    ///
+    /// The `operator` approval slot of `owner` is given by:
+    /// ```
+    ///     mstore(0x1c, or(_ERC721_MASTER_SLOT_SEED, operator))
+    ///     mstore(0x00, owner)
+    ///     let operatorApprovalSlot := keccak256(0x0c, 0x30)
+    /// ```
+    uint256 private constant _ERC721_MASTER_SLOT_SEED = 0x7d8825530a5a2e7a << 192;
 
-    // ERC-721 token owners mapping
-    mapping(uint256 => address) private _owners;
+    /// @dev Pre-shifted and pre-masked constant.
+    uint256 private constant _ERC721_MASTER_SLOT_SEED_MASKED = 0x0a5a2e7a00000000;
 
-    // ERC-721 token approvals mapping
-    mapping(uint256 => address) private _tokenApprovals;
+    /// @dev The owned data slot seed for ERC-721 tokens. Original tokenIds uint256[].
+    /// The first slot is given by:
+    /// ```
+    ///    mstore(0x1c, _ERC721_OWNED_SLOT_SEED)
+    ///    mstore(0x00, owner)
+    ///    let firstSlot := keccak256(0x1c, 0x20)
+    /// ```
+    ///
+    /// Additional tokenIds are stored in subsequent slots.
+    /// Take the first slot and add the index to get the subsequent slots.
+    /// ```
+    ///    let tokenIdSlot := add(firstSlot, index)
+    /// ```
+    uint256 private constant _ERC721_OWNED_SLOT_SEED = 0xaad1f1e3d5ff0d06;
 
-    // ERC-721 operator approvals mapping
-    mapping(address => mapping(address => bool)) private _operatorApprovals;
-
-    // ERC-721 owned tokens mapping
-    mapping(address => uint256[]) internal _owned;
-
-    // ERC-721 owned token index mapping
-    mapping(uint256 => uint256) internal _ownedIndex;
+    /// @dev The owned index slot seed for ERC-721 tokens.
+    /// The owned index slot is given by:
+    /// ```
+    ///    mstore(0x1c, _ERC721_OWNED_INDEX_SLOT_SEED)
+    ///    mstore(0x00, tokenId)
+    ///    let indexSlot := keccak256(0x0c, 0x1c)
+    /// ```
+    uint256 private constant _ERC721_OWNED_INDEX_SLOT_SEED = 0x70c5f0ea1f688ebb;
 
     // Counter for minted ERC-721 tokens
     uint256 public minted;
@@ -167,7 +213,25 @@ abstract contract ERC7629 is IERC7629 {
      * @param owner The address to query the balance of.
      */
     function erc721BalanceOf(address owner) external view returns (uint256) {
-        return _owned[owner].length;
+        return _erc721BalanceOf(owner);
+    }
+
+    /**
+     * @dev Returns the balance of an address for ERC-721 tokens.
+     * @param owner The address to query the balance of.
+     */
+    function _erc721BalanceOf(address owner) public view returns (uint256 result) {
+        /// @solidity memory-safe-assembly
+        assembly {
+            // Revert if the `owner` is the zero address.
+            if iszero(owner) {
+                mstore(0x00, 0x8f4eb604) // `BalanceQueryForZeroAddress()`.
+                revert(0x1c, 0x04)
+            }
+            mstore(0x1c, _ERC721_MASTER_SLOT_SEED)
+            mstore(0x00, owner)
+            result := and(sload(keccak256(0x0c, 0x1c)), _MAX_ACCOUNT_BALANCE)
+        }
     }
 
     /**
@@ -175,8 +239,14 @@ abstract contract ERC7629 is IERC7629 {
      * @param owner The address of the token owner.
      * @param operator The address of the operator to check.
      */
-    function isApprovedForAll(address owner, address operator) public view returns (bool) {
-        return _operatorApprovals[owner][operator];
+    function isApprovedForAll(address owner, address operator) public view returns (bool result) {
+        /// @solidity memory-safe-assembly
+        assembly {
+            mstore(0x1c, operator)
+            mstore(0x08, _ERC721_MASTER_SLOT_SEED_MASKED)
+            mstore(0x00, owner)
+            result := sload(keccak256(0x0c, 0x30))
+        }
     }
 
     /**
@@ -198,16 +268,52 @@ abstract contract ERC7629 is IERC7629 {
      * @dev Returns the array of ERC-721 token IDs owned by a specific address.
      * @param owner The address to query the tokens of.
      */
-    function owned(address owner) external view returns (uint256[] memory) {
-        return _owned[owner];
+    function owned(address owner) external view returns (uint256[] memory result) {
+        uint256 tokenCount = _erc721BalanceOf(owner);
+
+        result = new uint256[](tokenCount);
+
+        assembly {
+            // Setup for the first slot calculation
+            mstore(0x1c, _ERC721_OWNED_SLOT_SEED)
+            mstore(0x00, owner)
+            let firstSlot := keccak256(0x1c, 0x20)
+
+            // Iterate over each token owned by the owner, starting from the first token
+            for { let i := 0x0 } lt(i, tokenCount) { i := add(i, 0x1) } {
+                // For each subsequent token, calculate its slot based on the firstSlot and index
+                let tokenIdSlot := add(firstSlot, i)
+
+                // Retrieve the tokenId from the calculated slot and store it in the memory array
+                mstore(add(result, add(0x20, mul(i, 0x20))), sload(tokenIdSlot))
+            }
+        }
     }
 
     /**
      * @dev Returns the address that owns a specific ERC-721 token.
      * @param tokenId The token ID.
      */
-    function ownerOf(uint256 tokenId) public view returns (address erc721Owner) {
-        return _owners[tokenId];
+    function ownerOf(uint256 tokenId) public view returns (address result) {
+        result = _ownerOf(tokenId);
+        /// @solidity memory-safe-assembly
+        assembly {
+            if iszero(result) {
+                mstore(0x00, 0x52f4210a) // `ERC721NonexistentToken()`.
+                revert(0x1c, 0x04)
+            }
+        }
+    }
+
+    /// @dev Returns the owner of token `id`.
+    /// Returns the zero address instead of reverting if the token does not exist.
+    function _ownerOf(uint256 tokenId) internal view virtual returns (address result) {
+        /// @solidity memory-safe-assembly
+        assembly {
+            mstore(0x00, tokenId)
+            mstore(0x1c, _ERC721_MASTER_SLOT_SEED)
+            result := shr(96, shl(96, sload(add(tokenId, add(tokenId, keccak256(0x00, 0x20))))))
+        }
     }
 
     /**
@@ -267,21 +373,40 @@ abstract contract ERC7629 is IERC7629 {
      * @param emitEvent A boolean indicating whether to emit the Approval event.
      */
     function _approveERC721(address to, uint256 tokenId, address auth, bool emitEvent) internal virtual {
-        if (emitEvent || auth != address(0)) {
-            address owner = ownerOf(tokenId);
+        address owner;
 
-            // We do not use _isAuthorized because single-token approvals should not be able to call approve
-            if (owner != auth && !isApprovedForAll(owner, auth)) {
-                revert ERC721InvalidApprover(auth);
-            }
+        assembly {
+            // Clear the upper 96 bits.
+            let bitmaskAddress := shr(96, not(0))
+            to := and(bitmaskAddress, to)
+            auth := and(bitmaskAddress, auth)
+            // Load the owner of the token.
+            mstore(0x00, tokenId)
+            mstore(0x1c, or(_ERC721_MASTER_SLOT_SEED, auth))
+            let ownershipSlot := add(tokenId, add(tokenId, keccak256(0x00, 0x20)))
+            owner := and(bitmaskAddress, sload(ownershipSlot))
 
-            if (emitEvent) {
-                emit Approval(owner, to, tokenId);
-                emit ERC721Approval(owner, to, tokenId);
+            // If `auth` is not the zero address or emitEvent, do the authorization check.
+            // Revert if `auth` is not the owner, nor approved.
+            if or(iszero(iszero(emitEvent)), iszero(or(iszero(auth), eq(auth, owner)))) {
+                mstore(0x1c, auth)
+                mstore(0x08, _ERC721_MASTER_SLOT_SEED_MASKED)
+                mstore(0x00, owner)
+
+                // if (owner != auth && !isApprovedForAll(owner, auth))
+                if and(iszero(eq(owner, auth)), iszero(sload(keccak256(0x0c, 0x30)))) {
+                    mstore(0x00, 0xbd92be0e) // `ERC721InvalidApprover()`.
+                    revert(0x1c, 0x04)
+                }
             }
+            // Sets `to` as the approved to to manage `tokenId`.
+            sstore(add(1, ownershipSlot), to)
         }
 
-        _tokenApprovals[tokenId] = to;
+        if (emitEvent) {
+            emit Approval(owner, to, tokenId);
+            emit ERC721Approval(owner, to, tokenId);
+        }
     }
 
     /**
@@ -290,26 +415,37 @@ abstract contract ERC7629 is IERC7629 {
      * @param approved A boolean indicating whether to approve or revoke the operator.
      */
     function setApprovalForAll(address operator, bool approved) external {
-        if (operator == address(0)) {
-            revert ERC721InvalidOperator(operator);
-        }
+        /// @solidity memory-safe-assembly
+        assembly {
+            if iszero(operator) {
+                mstore(0x00, 0x91d71e2f) // `ERC721InvalidOperator()`.
+                revert(0x1c, 0x04)
+            }
 
-        _operatorApprovals[msg.sender][operator] = approved;
+            // Convert to 0 or 1.
+            approved := iszero(iszero(approved))
+            // Update the `isApproved` for (`msg.sender`, `operator`).
+            mstore(0x1c, operator)
+            mstore(0x08, _ERC721_MASTER_SLOT_SEED_MASKED)
+            mstore(0x00, caller())
+            sstore(keccak256(0x0c, 0x30), approved)
+        }
         emit ApprovalForAll(msg.sender, operator, approved);
     }
 
-    /**
-     * @dev Returns the address approved to transfer the given token ID.
-     * @param tokenId The ID of the token to query.
-     * @return The address approved to transfer the token.
-     * @notice Throws an error if the token does not exist.
-     */
-    function getApproved(uint256 tokenId) public view virtual returns (address) {
-        address owner = ownerOf(tokenId);
-        if (owner == address(0)) {
-            revert ERC721NonexistentToken(tokenId);
+    /// @dev Returns the approved address for a token ID, or the zero address if no address is approved.
+    function getApproved(uint256 tokenId) public view virtual returns (address result) {
+        /// @solidity memory-safe-assembly
+        assembly {
+            mstore(0x00, tokenId)
+            mstore(0x1c, _ERC721_MASTER_SLOT_SEED)
+            let ownershipSlot := add(tokenId, add(tokenId, keccak256(0x00, 0x20)))
+            if iszero(shl(96, sload(ownershipSlot))) {
+                mstore(0x00, 0x52f4210a) // `ERC721NonexistentToken()`.
+                revert(0x1c, 0x04)
+            }
+            result := sload(add(1, ownershipSlot))
         }
-        return _tokenApprovals[tokenId];
     }
 
     /**
@@ -417,12 +553,18 @@ abstract contract ERC7629 is IERC7629 {
      * @param value The amount of tokens to transfer.
      */
     function _transferERC20(address from, address to, uint256 value) internal {
-        if (from == address(0)) {
-            revert ERC20InvalidSender(address(0));
+        /// @solidity memory-safe-assembly
+        assembly {
+            if iszero(from) {
+                mstore(0x00, 0x5b168993) // `ERC20InvalidSender()`.
+                revert(0x1c, 0x04)
+            }
+            if iszero(to) {
+                mstore(0x00, 0x04786ad1) // `ERC20InvalidReceiver()`.
+                revert(0x1c, 0x04)
+            }
         }
-        if (to == address(0)) {
-            revert ERC20InvalidReceiver(address(0));
-        }
+
         _updateERC20(from, to, value);
     }
 
@@ -434,11 +576,11 @@ abstract contract ERC7629 is IERC7629 {
      * @notice Handles minting and burning tokens, preventing overflow and emitting transfer events.
      */
     function _updateERC20(address from, address to, uint256 value) internal virtual {
-        if (from == address(0)) {
-            // Overflow check required: The rest of the code assumes that totalSupply never overflows
-
-            /// @solidity memory-safe-assembly
-            assembly {
+        /// @solidity memory-safe-assembly
+        assembly {
+            switch iszero(from)
+            case 1 {
+                // Overflow check required: The rest of the code assumes that totalSupply never overflows
                 let totalSupplyBefore := sload(_TOTAL_SUPPLY_SLOT)
                 let totalSupplyAfter := add(totalSupplyBefore, value)
                 // Revert if the total supply overflows.
@@ -449,9 +591,7 @@ abstract contract ERC7629 is IERC7629 {
                 // Store the updated total supply.
                 sstore(_TOTAL_SUPPLY_SLOT, totalSupplyAfter)
             }
-        } else {
-            /// @solidity memory-safe-assembly
-            assembly {
+            default {
                 mstore(0x0c, _ERC20_BALANCE_SLOT_SEED)
                 mstore(0x00, from)
 
@@ -468,17 +608,13 @@ abstract contract ERC7629 is IERC7629 {
                 // Subtract and store the updated balance.
                 sstore(fromBalanceSlot, sub(fromBalance, value))
             }
-        }
 
-        if (to == address(0)) {
-            // Overflow not possible: value <= totalSupply or value <= fromBalance <= totalSupply.
-            /// @solidity memory-safe-assembly
-            assembly {
+            switch iszero(to)
+            case 1 {
+                // Overflow not possible: value <= totalSupply or value <= fromBalance <= totalSupply.
                 sstore(_TOTAL_SUPPLY_SLOT, sub(sload(_TOTAL_SUPPLY_SLOT), value))
             }
-        } else {
-            /// @solidity memory-safe-assembly
-            assembly {
+            default {
                 // Compute the balance slot of `to`.
                 mstore(0x0c, _ERC20_BALANCE_SLOT_SEED)
                 mstore(0x00, to)
@@ -506,7 +642,7 @@ abstract contract ERC7629 is IERC7629 {
 
         address previousOwner = _updateERC721(to, tokenId);
         if (previousOwner == address(0)) {
-            revert ERC721NonexistentToken(tokenId);
+            revert ERC721NonexistentToken();
         } else if (previousOwner != from) {
             revert ERC721IncorrectOwner(from, tokenId, previousOwner);
         }
@@ -516,39 +652,104 @@ abstract contract ERC7629 is IERC7629 {
      * @dev Updates the ownership of an ERC-721 token during a transfer.
      * @param to The address to which the token is being transferred.
      * @param tokenId The ID of the ERC-721 token being transferred.
-     * @return The address from which the token is transferred.
      * @notice Clears approval, updates balances, and emits transfer events.
+     * @notice will return the previous owner of the token
      */
-    function _updateERC721(address to, uint256 tokenId) internal virtual returns (address) {
-        address from = ownerOf(tokenId);
+    function _updateERC721(address to, uint256 tokenId) internal virtual returns (address from) {
+        /// @solidity memory-safe-assembly
+        assembly {
+            // Set slot seed for further calculations.
+            mstore(0x1c, _ERC721_MASTER_SLOT_SEED)
 
-        // Execute the update
-        if (from != address(0)) {
-            // Clear approval. No need to re-authorize or emit the Approval event
-            _approveERC721(address(0), tokenId, address(0), false);
+            // Clear the upper 96 bits.
+            let bitmaskAddress := shr(96, not(0))
+            to := and(bitmaskAddress, to)
 
-            unchecked {
-                _erc721BalanceOf[from] -= 1;
+            // Load the ownership data.
+            mstore(0x00, tokenId)
+            mstore(0x1c, or(_ERC721_MASTER_SLOT_SEED, caller()))
+            let ownershipSlot := add(tokenId, add(tokenId, keccak256(0x00, 0x20)))
+            let ownershipPacked := sload(ownershipSlot)
+            from := and(bitmaskAddress, ownershipPacked)
+
+            // if from is not 0
+            if iszero(iszero(from)) {
+                // Clear approval. No need to re-authorize or emit the Approval event
+                // Delete the approved address if any.
+                if sload(add(1, ownershipSlot)) { sstore(add(1, ownershipSlot), 0) }
+
+                // Decrement the balance of `from`.
+                {
+                    mstore(0x1c, _ERC721_MASTER_SLOT_SEED)
+                    mstore(0x00, from)
+                    let fromBalanceSlot := keccak256(0x0c, 0x1c)
+                    sstore(fromBalanceSlot, sub(sload(fromBalanceSlot), 1))
+                    let fromBalance := sload(fromBalanceSlot)
+
+                    // update tokenIds array
+                    // the tokenIndex will be the from balance as it has been decremented
+                    mstore(0x1c, _ERC721_OWNED_SLOT_SEED)
+                    mstore(0x00, from)
+                    let firstSlot := keccak256(0x1c, 0x20)
+                    let updatedIdSlot := add(firstSlot, fromBalance)
+                    let updatedId := sload(updatedIdSlot)
+
+                    // replace the old tokenId with the updatedId(last tokenId in the array)
+                    if iszero(eq(updatedId, tokenId)) {
+                        // get original tokenId index
+                        mstore(0x1c, _ERC721_OWNED_INDEX_SLOT_SEED)
+                        mstore(0x00, tokenId)
+                        let ownedIndexSlot := keccak256(0x1c, 0x20)
+                        let tokenIdOwnedIndex := sload(ownedIndexSlot)
+
+                        // replace the tokenId with the updatedId
+                        let tokenIdSlot := add(firstSlot, tokenIdOwnedIndex)
+                        sstore(tokenIdSlot, updatedId)
+
+                        // update the index of the updatedId
+                        mstore(0x00, updatedId)
+                        ownedIndexSlot := keccak256(0x1c, 0x20)
+                        sstore(ownedIndexSlot, tokenIdOwnedIndex)
+                    }
+                }
             }
 
-            uint256 updatedId = _owned[from][_owned[from].length - 1];
-            if (tokenId != updatedId) {
-                _owned[from][_ownedIndex[tokenId]] = updatedId;
-                _ownedIndex[updatedId] = _ownedIndex[tokenId];
+            // if to is not 0
+            if iszero(iszero(to)) {
+                // Increment the balance of `to`.
+                {
+                    mstore(0x1c, _ERC721_MASTER_SLOT_SEED)
+                    mstore(0x00, to)
+                    let toBalanceSlot := keccak256(0x0c, 0x1c)
+                    let toBalance := sload(toBalanceSlot)
+                    let toBalanceSlotPacked := add(toBalance, 1)
+
+                    // Revert if the account balance overflows.
+                    if iszero(and(toBalanceSlotPacked, _MAX_ACCOUNT_BALANCE)) {
+                        mstore(0x00, 0x56f42d6e) // `ERC721AccountBalanceOverflow()`.
+                        revert(0x1c, 0x04)
+                    }
+                    sstore(toBalanceSlot, toBalanceSlotPacked)
+
+                    // update tokenIds array
+                    // the tokenIndex will be the original toBalance before add as it has been incremented
+                    mstore(0x1c, _ERC721_OWNED_SLOT_SEED)
+                    mstore(0x00, to)
+                    let firstSlot := keccak256(0x1c, 0x20)
+                    let nextSlot := add(firstSlot, toBalance)
+                    sstore(nextSlot, tokenId)
+
+                    // update the index of the tokenId
+                    mstore(0x1c, _ERC721_OWNED_INDEX_SLOT_SEED)
+                    mstore(0x00, tokenId)
+                    let ownedIndexSlot := keccak256(0x1c, 0x20)
+                    sstore(ownedIndexSlot, toBalance)
+                }
             }
-            _owned[from].pop();
+
+            // Update with the new owner.
+            sstore(ownershipSlot, xor(ownershipPacked, xor(from, to)))
         }
-
-        if (to != address(0)) {
-            unchecked {
-                _erc721BalanceOf[to] += 1;
-            }
-
-            _owned[to].push(tokenId);
-            _ownedIndex[tokenId] = _owned[to].length - 1;
-        }
-
-        _owners[tokenId] = to;
 
         emit ERC721Transfer(from, to, tokenId);
         emit Transfer(from, to, tokenId);
@@ -575,8 +776,12 @@ abstract contract ERC7629 is IERC7629 {
      * @notice Prevents minting tokens to address(0).
      */
     function _mintERC20(address account, uint256 value) internal {
-        if (account == address(0)) {
-            revert ERC20InvalidReceiver(address(0));
+        /// @solidity memory-safe-assembly
+        assembly {
+            if iszero(account) {
+                mstore(0x00, 0x04786ad1) // `ERC20InvalidReceiver()`.
+                revert(0x1c, 0x04)
+            }
         }
         _updateERC20(address(0), account, value);
     }
@@ -588,8 +793,12 @@ abstract contract ERC7629 is IERC7629 {
      * @notice Prevents burning tokens from address(0).
      */
     function _burnERC20(address account, uint256 value) internal {
-        if (account == address(0)) {
-            revert ERC20InvalidSender(address(0));
+        /// @solidity memory-safe-assembly
+        assembly {
+            if iszero(account) {
+                mstore(0x00, 0x5b168993) // `ERC20InvalidSender()`.
+                revert(0x1c, 0x04)
+            }
         }
         _updateERC20(account, address(0), value);
     }
@@ -619,7 +828,7 @@ abstract contract ERC7629 is IERC7629 {
     function _burnERC721(uint256 tokenId) internal {
         address previousOwner = _updateERC721(address(0), tokenId);
         if (previousOwner == address(0)) {
-            revert ERC721NonexistentToken(tokenId);
+            revert ERC721NonexistentToken();
         }
     }
 
@@ -642,11 +851,11 @@ abstract contract ERC7629 is IERC7629 {
      */
     function erc20ToERC721(uint256 amount) external {
         uint256 nftAmount = amount / _units;
-        uint256 ftAmount = nftAmount * _units;
 
-        _burnERC20(msg.sender, ftAmount);
+        _burnERC20(msg.sender, amount);
 
-        uint256 nftMintAmount = _owned[address(this)].length < nftAmount ? nftAmount - _owned[address(this)].length : 0;
+        uint256 amountSwappable = _erc721BalanceOf(address(this));
+        uint256 nftMintAmount = amountSwappable < nftAmount ? nftAmount - amountSwappable : 0;
         uint256 nftTransferAmount = nftAmount - nftMintAmount;
 
         uint256[] memory tokenIds = new uint256[](nftAmount);
@@ -657,12 +866,13 @@ abstract contract ERC7629 is IERC7629 {
             tokenIds[i] = tokenId;
         }
 
+        uint256 tokenCount = _erc721BalanceOf(msg.sender);
         for (uint256 i = 0; i < nftTransferAmount; i++) {
-            uint256 tokenId = _owned[address(this)][_owned[address(this)].length - 1];
+            uint256 tokenId = _getTokenIdAtIndex(address(this), tokenCount - i - 1);
             _updateERC721(msg.sender, tokenId);
             tokenIds[i + nftMintAmount] = tokenId;
         }
-        emit ERC20ToERC721(msg.sender, ftAmount, tokenIds);
+        emit ERC20ToERC721(msg.sender, amount, tokenIds);
     }
 
     /**
@@ -680,5 +890,23 @@ abstract contract ERC7629 is IERC7629 {
      */
     function supportsInterface(bytes4 interfaceId) public view virtual returns (bool) {
         return interfaceId == type(IERC7629).interfaceId || interfaceId == type(IERC165).interfaceId;
+    }
+
+    /**
+     * @dev Get the token ID at the specified index in the array of tokens owned by the address.
+     * @param owner The address to query the tokens of.
+     * @param index The index of the token in the array.
+     * @notice Return the last token ID owned by the address.
+     */
+    function _getTokenIdAtIndex(address owner, uint256 index) internal view returns (uint256 tokenId) {
+        assembly {
+            // Setup for the first slot calculation
+            mstore(0x1c, _ERC721_OWNED_SLOT_SEED)
+            mstore(0x00, owner)
+            let firstSlot := keccak256(0x1c, 0x20)
+
+            // Get the last token ID owned by the owner
+            tokenId := sload(add(firstSlot, index))
+        }
     }
 }
