@@ -866,7 +866,7 @@ abstract contract ERC7629 is IERC7629 {
             tokenIds[i] = tokenId;
         }
 
-        uint256 tokenCount = _erc721BalanceOf(msg.sender);
+        uint256 tokenCount = _erc721BalanceOf(address(this));
         for (uint256 i = 0; i < nftTransferAmount; i++) {
             uint256 tokenId = _getTokenIdAtIndex(address(this), tokenCount - i - 1);
             _updateERC721(msg.sender, tokenId);
