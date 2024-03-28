@@ -472,7 +472,7 @@ contract ERC7629Test is Test {
 
     function test_erc721_mint_minted_token_reverts() public {
         erc7629.mintERC721(address(0x1), 1);
-        vm.expectRevert(abi.encodeWithSelector(ERC7629.ERC721InvalidSender.selector, address(0)));
+        vm.expectRevert(ERC7629.ERC721InvalidSender.selector);
         erc7629.mintERC721(address(0x1), 1);
     }
 
