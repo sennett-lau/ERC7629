@@ -9,7 +9,7 @@ abstract contract ERC7629 is IERC7629 {
     error ERC721InvalidApprover();
     error ERC721InvalidOperator();
     error ERC721InvalidSender();
-    error ERC721InvalidReceiver(address receiver);
+    error ERC721InvalidReceiver();
     error ERC721IncorrectOwner(address sender, uint256 tokenId, address owner);
     error ERC721NonexistentToken();
     error ERC721AccountBalanceOverflow();
@@ -482,11 +482,19 @@ abstract contract ERC7629 is IERC7629 {
         if (to.code.length > 0) {
             try IERC721Receiver(to).onERC721Received(msg.sender, from, tokenId, data) returns (bytes4 retval) {
                 if (retval != IERC721Receiver.onERC721Received.selector) {
-                    revert ERC721InvalidReceiver(to);
+                    /// @solidity memory-safe-assembly
+                    assembly {
+                        mstore(0x00, 0xb2e2a9c1) // `ERC721InvalidReceiver()`.
+                        revert(0x1c, 0x04)
+                    }
                 }
             } catch (bytes memory reason) {
                 if (reason.length == 0) {
-                    revert ERC721InvalidReceiver(to);
+                    /// @solidity memory-safe-assembly
+                    assembly {
+                        mstore(0x00, 0xb2e2a9c1) // `ERC721InvalidReceiver()`.
+                        revert(0x1c, 0x04)
+                    }
                 } else {
                     /// @solidity memory-safe-assembly
                     assembly {
@@ -636,11 +644,16 @@ abstract contract ERC7629 is IERC7629 {
      * @param tokenId The ID of the ERC-721 token to transfer.
      */
     function _erc721TransferFrom(address from, address to, uint256 tokenId) internal {
-        if (to == address(0)) {
-            revert ERC721InvalidReceiver(address(0));
+        /// @solidity memory-safe-assembly
+        assembly {
+            if iszero(to) {
+                mstore(0x00, 0xb2e2a9c1) // `ERC721InvalidReceiver()`.
+                revert(0x1c, 0x04)
+            }
         }
 
         address previousOwner = _updateERC721(to, tokenId);
+
         if (previousOwner == address(0)) {
             revert ERC721NonexistentToken();
         } else if (previousOwner != from) {
@@ -809,9 +822,14 @@ abstract contract ERC7629 is IERC7629 {
      * @param tokenId The ID of the ERC-721 token to be minted.
      */
     function _mintERC721(address to, uint256 tokenId) internal {
-        if (to == address(0)) {
-            revert ERC721InvalidReceiver(address(0));
+        /// @solidity memory-safe-assembly
+        assembly {
+            if iszero(to) {
+                mstore(0x00, 0xb2e2a9c1) // `ERC721InvalidReceiver()`.
+                revert(0x1c, 0x04)
+            }
         }
+
         address previousOwner = _updateERC721(to, tokenId);
 
         /// @solidity memory-safe-assembly
