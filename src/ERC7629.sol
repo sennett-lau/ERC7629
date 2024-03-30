@@ -10,7 +10,7 @@ abstract contract ERC7629 is IERC7629 {
     error ERC721InvalidOperator();
     error ERC721InvalidSender();
     error ERC721InvalidReceiver();
-    error ERC721IncorrectOwner(address sender, uint256 tokenId, address owner);
+    error ERC721IncorrectOwner();
     error ERC721NonexistentToken();
     error ERC721AccountBalanceOverflow();
 
@@ -656,8 +656,14 @@ abstract contract ERC7629 is IERC7629 {
 
         if (previousOwner == address(0)) {
             revert ERC721NonexistentToken();
-        } else if (previousOwner != from) {
-            revert ERC721IncorrectOwner(from, tokenId, previousOwner);
+        }
+
+        /// @solidity memory-safe-assembly
+        assembly {
+            if iszero(eq(previousOwner, from)) {
+                mstore(0x00, 0x4829a139) // `ERC721IncorrectOwner()`.
+                revert(0x1c, 0x04)
+            }
         }
     }
 

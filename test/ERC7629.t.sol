@@ -627,7 +627,7 @@ contract ERC7629Test is Test {
 
     function test_erc721_transfer_from_incorrect_owner_reverts() public {
         erc7629.mintERC721(address(0x1), 1);
-        vm.expectRevert(abi.encodeWithSelector(ERC7629.ERC721IncorrectOwner.selector, address(0x2), 1, address(0x1)));
+        vm.expectRevert(ERC7629.ERC721IncorrectOwner.selector);
         erc7629.erc721TransferFrom(address(0x2), address(0x3), 1);
     }
 
