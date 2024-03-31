@@ -423,7 +423,7 @@ contract ERC7629Test is Test {
     }
 
     function test_erc20_approve_with_invalid_spender_reverts() public {
-        vm.expectRevert(abi.encodeWithSelector(ERC7629.ERC20InvalidSpender.selector, address(0)));
+        vm.expectRevert(ERC7629.ERC20InvalidSpender.selector);
         erc7629.erc20Approve(address(0), 10_000);
     }
 
