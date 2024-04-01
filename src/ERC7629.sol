@@ -531,9 +531,10 @@ abstract contract ERC7629 is IERC7629 {
      * @return True if the transfer was successful.
      */
     function _erc20TransferFrom(address from, address to, uint256 value) internal returns (bool) {
-        address spender = msg.sender;
         /// @solidity memory-safe-assembly
         assembly {
+            let spender := caller()
+
             // Compute the allowance slot and load its value.
             mstore(0x20, spender)
             mstore(0x0c, _ERC20_ALLOWANCE_SLOT_SEED)
