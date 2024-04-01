@@ -846,9 +846,8 @@ abstract contract ERC7629 is IERC7629 {
                 mstore(0x00, 0x73378f7d) // `ERC721InvalidSender()`.
                 revert(0x1c, 0x04)
             }
-        }
-        unchecked {
-            minted++;
+
+            sstore(minted.slot, add(sload(minted.slot), 1))
         }
     }
 
