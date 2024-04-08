@@ -15,8 +15,8 @@ contract ERC7629AMock is Ownable, ERC7629A {
         _mintERC20(to_, amount_);
     }
 
-    function mintERC721(address to_, uint256 id_) public {
-        _mintERC721(to_, id_);
+    function mintERC721(address to_, uint256 amount_) public {
+        _mintERC721(to_, amount_);
     }
 
     function burnERC20(address owner_, uint256 amount_) public {

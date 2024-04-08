@@ -452,28 +452,23 @@ contract ERC7629ATest is Test {
     /* %=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*& */
 
     function test_erc721_mint() public {
+        uint256 amount = 1;
         uint256 tokenId = 1;
         address owner = address(0x1);
-        erc7629a.mintERC721(owner, tokenId);
+        erc7629a.mintERC721(owner, amount);
 
         uint256[] memory tokenIds = erc7629a.owned(owner);
-        assertEq(tokenIds.length, 1);
+        assertEq(tokenIds.length, amount);
         assertEq(tokenIds[0], tokenId);
 
         assertEq(erc7629a.ownerOf(tokenId), owner);
-        assertEq(erc7629a.erc721BalanceOf(owner), 1);
-        assertEq(erc7629a.erc721TotalSupply(), 1);
+        assertEq(erc7629a.erc721BalanceOf(owner), amount);
+        assertEq(erc7629a.erc721TotalSupply(), amount);
     }
 
     function test_erc721_mint_to_0_reverts() public {
         vm.expectRevert(ERC7629A.ERC721InvalidReceiver.selector);
         erc7629a.mintERC721(address(0), 1);
-    }
-
-    function test_erc721_mint_minted_token_reverts() public {
-        erc7629a.mintERC721(address(0x1), 1);
-        vm.expectRevert(ERC7629A.ERC721InvalidSender.selector);
-        erc7629a.mintERC721(address(0x1), 1);
     }
 
     function test_erc721_total_supply() public {
