@@ -974,9 +974,10 @@ abstract contract ERC7629A is IERC7629 {
 
         uint256[] memory tokenIds = new uint256[](nftAmount);
 
+        _mintERC721(msg.sender, nftMintAmount);
+
         for (uint256 i = 0; i < nftMintAmount; i++) {
             uint256 tokenId = minted + 1;
-            _mintERC721(msg.sender, tokenId);
             tokenIds[i] = tokenId;
         }
 
