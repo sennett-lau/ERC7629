@@ -831,27 +831,78 @@ abstract contract ERC7629A is IERC7629 {
     /**
      * @dev Mint a new ERC-721 token and assign ownership to the specified address.
      * @param to The address to receive the minted ERC-721 token.
-     * @param tokenId The ID of the ERC-721 token to be minted.
+     * @param amount The amount of ERC-721 tokens to mint.
      */
-    function _mintERC721(address to, uint256 tokenId) internal {
+    function _mintERC721(address to, uint256 amount) internal {
+        uint256 tmpMinted = minted;
+
         /// @solidity memory-safe-assembly
         assembly {
             if iszero(to) {
                 mstore(0x00, 0xb2e2a9c1) // `ERC721InvalidReceiver()`.
                 revert(0x1c, 0x04)
             }
-        }
 
-        address previousOwner = _updateERC721(to, tokenId);
+            let m := sload(minted.slot)
+            let tokenId := add(m, amount)
 
-        /// @solidity memory-safe-assembly
-        assembly {
-            if iszero(iszero(previousOwner)) {
-                mstore(0x00, 0x73378f7d) // `ERC721InvalidSender()`.
-                revert(0x1c, 0x04)
+            // Clear the upper 96 bits.
+            to := shr(96, shl(96, to))
+
+            // Load the ownership data.
+            mstore(0x00, tokenId)
+            mstore(0x1c, _ERC721_MASTER_SLOT_SEED)
+            let ownershipSlot := add(tokenId, add(tokenId, keccak256(0x00, 0x20)))
+            let ownershipPacked := sload(ownershipSlot)
+
+            // Update with the owner.
+            sstore(ownershipSlot, or(ownershipPacked, to))
+
+            // Increment the balance of the owner.
+            {
+                mstore(0x00, to)
+
+                let balanceSlot := keccak256(0x0c, 0x1c)
+                let balanceOriginalPacked := sload(balanceSlot)
+                let balanceSlotPacked := add(balanceOriginalPacked, amount)
+
+                // Revert if the account balance overflows.
+                if iszero(and(balanceSlotPacked, _MAX_ACCOUNT_BALANCE)) {
+                    mstore(0x00, 0x56f42d6e) // `ERC721AccountBalanceOverflow()`.
+                    revert(0x1c, 0x04)
+                }
+
+                sstore(balanceSlot, balanceSlotPacked)
+
+                // get the first slot of the tokenIds array
+                mstore(0x1c, _ERC721_OWNED_SLOT_SEED)
+                mstore(0x00, to)
+                let firstSlot := keccak256(0x1c, 0x20)
+
+                // update tokenIds array
+                let offset := balanceOriginalPacked
+                for { let i := 0x1 } lt(i, add(amount, 1)) { i := add(i, 0x1) } {
+                    let nextSlot := add(firstSlot, offset)
+                    let id := add(m, i)
+                    sstore(nextSlot, id)
+
+                    // update the index of the tokenId
+                    mstore(0x1c, _ERC721_OWNED_INDEX_SLOT_SEED)
+                    mstore(0x00, id)
+                    let ownedIndexSlot := keccak256(0x1c, 0x20)
+                    sstore(ownedIndexSlot, offset)
+
+                    offset := add(offset, 0x1)
+                }
             }
 
-            sstore(minted.slot, add(sload(minted.slot), 1))
+            // Update the minted count.
+            sstore(minted.slot, tokenId)
+        }
+
+        for (uint256 i = tmpMinted + 1; i <= minted; i++) {
+            emit ERC721Transfer(address(0), to, i);
+            emit Transfer(address(0), to, i);
         }
     }
 
