@@ -310,9 +310,13 @@ abstract contract ERC7629A is IERC7629 {
     function _ownerOf(uint256 tokenId) internal view virtual returns (address result) {
         /// @solidity memory-safe-assembly
         assembly {
-            mstore(0x00, tokenId)
-            mstore(0x1c, _ERC721_MASTER_SLOT_SEED)
-            result := shr(96, shl(96, sload(add(tokenId, add(tokenId, keccak256(0x00, 0x20))))))
+            for { let i := tokenId } lt(i, add(sload(minted.slot), 1)) { i := add(i, 0x1) } {
+                mstore(0x00, i)
+                mstore(0x1c, _ERC721_MASTER_SLOT_SEED)
+                result := shr(96, shl(96, sload(add(i, add(i, keccak256(0x00, 0x20))))))
+
+                if iszero(iszero(result)) { break }
+            }
         }
     }
 
