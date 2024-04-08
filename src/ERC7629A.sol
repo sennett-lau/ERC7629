@@ -675,67 +675,87 @@ abstract contract ERC7629A is IERC7629 {
 
     /**
      * @dev Updates the ownership of an ERC-721 token during a transfer.
-     * @param to The address to which the token is being transferred.
+     * @param to The address to which the token is being transferred
      * @param tokenId The ID of the ERC-721 token being transferred.
      * @notice Clears approval, updates balances, and emits transfer events.
      * @notice will return the previous owner of the token
      */
     function _updateERC721(address to, uint256 tokenId) internal virtual returns (address from) {
+        from = _ownerOf(tokenId);
+
         /// @solidity memory-safe-assembly
         assembly {
-            // Set slot seed for further calculations.
-            mstore(0x1c, _ERC721_MASTER_SLOT_SEED)
+            // from must not be address(0) as mint should be called before transfer
+            if iszero(from) {
+                mstore(0x00, 0x52f4210a) // `ERC721NonexistentToken()`.
+                revert(0x1c, 0x04)
+            }
 
             // Clear the upper 96 bits.
             let bitmaskAddress := shr(96, not(0))
             to := and(bitmaskAddress, to)
+            let shifted := and(bitmaskAddress, from)
 
             // Load the ownership data.
             mstore(0x00, tokenId)
             mstore(0x1c, or(_ERC721_MASTER_SLOT_SEED, caller()))
             let ownershipSlot := add(tokenId, add(tokenId, keccak256(0x00, 0x20)))
             let ownershipPacked := sload(ownershipSlot)
-            from := and(bitmaskAddress, ownershipPacked)
 
-            // if from is not 0
-            if iszero(iszero(from)) {
-                // Clear approval. No need to re-authorize or emit the Approval event
-                // Delete the approved address if any.
-                if sload(add(1, ownershipSlot)) { sstore(add(1, ownershipSlot), 0) }
+            // Clear approval. No need to re-authorize or emit the Approval event
+            // Delete the approved address if any.
+            if sload(add(1, ownershipSlot)) { sstore(add(1, ownershipSlot), 0) }
 
-                // Decrement the balance of `from`.
-                {
-                    mstore(0x1c, _ERC721_MASTER_SLOT_SEED)
-                    mstore(0x00, from)
-                    let fromBalanceSlot := keccak256(0x0c, 0x1c)
-                    sstore(fromBalanceSlot, sub(sload(fromBalanceSlot), 1))
-                    let fromBalance := sload(fromBalanceSlot)
+            // Decrement the balance of `from`.
+            {
+                mstore(0x1c, _ERC721_MASTER_SLOT_SEED)
+                mstore(0x00, from)
+                let fromBalanceSlot := keccak256(0x0c, 0x1c)
+                sstore(fromBalanceSlot, sub(sload(fromBalanceSlot), 1))
+                let fromBalance := sload(fromBalanceSlot)
 
-                    // update tokenIds array
-                    // the tokenIndex will be the from balance as it has been decremented
-                    mstore(0x1c, _ERC721_OWNED_SLOT_SEED)
-                    mstore(0x00, from)
-                    let firstSlot := keccak256(0x1c, 0x20)
-                    let updatedIdSlot := add(firstSlot, fromBalance)
-                    let updatedId := sload(updatedIdSlot)
+                // update tokenIds array
+                // the tokenIndex will be the from balance as it has been decremented
+                mstore(0x1c, _ERC721_OWNED_SLOT_SEED)
+                mstore(0x00, from)
+                let firstSlot := keccak256(0x1c, 0x20)
+                let updatedIdSlot := add(firstSlot, fromBalance)
+                let updatedId := sload(updatedIdSlot)
 
-                    // replace the old tokenId with the updatedId(last tokenId in the array)
-                    if iszero(eq(updatedId, tokenId)) {
-                        // get original tokenId index
-                        mstore(0x1c, _ERC721_OWNED_INDEX_SLOT_SEED)
-                        mstore(0x00, tokenId)
-                        let ownedIndexSlot := keccak256(0x1c, 0x20)
-                        let tokenIdOwnedIndex := sload(ownedIndexSlot)
+                // replace the old tokenId with the updatedId(last tokenId in the array)
+                if iszero(eq(updatedId, tokenId)) {
+                    // get original tokenId index
+                    mstore(0x1c, _ERC721_OWNED_INDEX_SLOT_SEED)
+                    mstore(0x00, tokenId)
+                    let ownedIndexSlot := keccak256(0x1c, 0x20)
+                    let tokenIdOwnedIndex := sload(ownedIndexSlot)
 
-                        // replace the tokenId with the updatedId
-                        let tokenIdSlot := add(firstSlot, tokenIdOwnedIndex)
-                        sstore(tokenIdSlot, updatedId)
+                    // replace the tokenId with the updatedId
+                    let tokenIdSlot := add(firstSlot, tokenIdOwnedIndex)
+                    sstore(tokenIdSlot, updatedId)
 
-                        // update the index of the updatedId
-                        mstore(0x00, updatedId)
-                        ownedIndexSlot := keccak256(0x1c, 0x20)
-                        sstore(ownedIndexSlot, tokenIdOwnedIndex)
-                    }
+                    // update the index of the updatedId
+                    mstore(0x00, updatedId)
+                    ownedIndexSlot := keccak256(0x1c, 0x20)
+                    sstore(ownedIndexSlot, tokenIdOwnedIndex)
+                }
+            }
+
+            // Update tokenId - 1's ownership to from for lazy minting of tokens
+            if iszero(eq(tokenId, 1)) {
+                let prevId := sub(tokenId, 1)
+
+                // Load the ownership data.
+                mstore(0x00, prevId)
+                mstore(0x1c, or(_ERC721_MASTER_SLOT_SEED, caller()))
+                let prevOwnershipSlot := add(prevId, add(prevId, keccak256(0x00, 0x20)))
+                let prevOwnershipPacked := sload(prevOwnershipSlot)
+                let owner := and(bitmaskAddress, prevOwnershipPacked)
+
+                // When the previous tokenId is not minted, set the ownership to from
+                if iszero(owner) {
+                    // Update with the new owner.
+                    sstore(prevOwnershipSlot, or(prevOwnershipPacked, shifted))
                 }
             }
 
@@ -772,8 +792,12 @@ abstract contract ERC7629A is IERC7629 {
                 }
             }
 
+            let isPackFilled := shl(96, ownershipPacked)
+
             // Update with the new owner.
-            sstore(ownershipSlot, xor(ownershipPacked, xor(from, to)))
+            if isPackFilled { sstore(ownershipSlot, xor(ownershipPacked, xor(shifted, to))) }
+
+            if iszero(isPackFilled) { sstore(ownershipSlot, or(ownershipPacked, to)) }
         }
 
         emit ERC721Transfer(from, to, tokenId);
