@@ -112,12 +112,13 @@ contract ERC7629ATest is Test {
 
     function test_erc721_to_erc20() public {
         uint256 unit = erc7629a.getUnit();
+        uint256 amount = 1;
         uint256 tokenId = 1;
 
         address user = address(0x1);
 
         // mint erc271
-        erc7629a.mintERC721(user, tokenId);
+        erc7629a.mintERC721(user, amount);
 
         // convert single
         vm.prank(user);
@@ -133,12 +134,13 @@ contract ERC7629ATest is Test {
         uint256[] memory contractTokenIds = erc7629a.owned(address(erc7629a));
         uint256 contractTokenId = contractTokenIds[0];
 
-        assertEq(contractTokenIds.length, 1);
-        assertEq(contractTokenId, 1);
+        assertEq(contractTokenIds.length, amount);
+        assertEq(contractTokenId, tokenId);
     }
 
     function test_erc20_to_erc721_batch_of_10_with_5_minted() public {
         uint256 unit = erc7629a.getUnit();
+        uint256 mintAmount = 5;
         uint256 expectedAmount = 5;
         uint256 amountToConvert = expectedAmount * unit;
 
@@ -146,18 +148,19 @@ contract ERC7629ATest is Test {
 
         erc7629a.mintERC20(user, amountToConvert);
 
-        for (uint256 i = 1; i <= 5; i++) {
-            erc7629a.mintERC721(user, i);
+        erc7629a.mintERC721(user, 5);
+
+        for (uint256 i = 1; i <= mintAmount; i++) {
             vm.prank(user);
             erc7629a.erc721ToERC20(i);
         }
 
         vm.prank(user);
-        erc7629a.erc20ToERC721((expectedAmount + 5) * unit);
+        erc7629a.erc20ToERC721((expectedAmount + mintAmount) * unit);
 
         uint256[] memory tokenIds = erc7629a.owned(user);
 
-        assertEq(tokenIds.length, 10);
+        assertEq(tokenIds.length, expectedAmount + mintAmount);
 
         assertEq(tokenIds[0], 6);
         assertEq(tokenIds[1], 7);
@@ -200,20 +203,21 @@ contract ERC7629ATest is Test {
     // the approve implements _erc721TransferFrom
     // the transferFrom implements _erc721Approve
     function test_erc721_transfer_flow() public {
+        uint256 amount = 1;
         uint256 tokenId = 1;
         address user = address(0x1);
         address spender = address(0x2);
 
         // mint erc271
-        erc7629a.mintERC721(user, tokenId);
+        erc7629a.mintERC721(user, amount);
 
         uint256 minted = erc7629a.erc721TotalSupply();
-        assertEq(minted, tokenId);
+        assertEq(minted, amount);
 
         uint256[] memory ownedTokenIds = erc7629a.owned(user);
         uint256 ownedTokenId = ownedTokenIds[0];
 
-        assertEq(ownedTokenIds.length, 1);
+        assertEq(ownedTokenIds.length, amount);
         assertEq(ownedTokenId, tokenId);
 
         address approved = erc7629a.getApproved(tokenId);
@@ -238,7 +242,7 @@ contract ERC7629ATest is Test {
         uint256[] memory spenderTokenIds = erc7629a.owned(spender);
         uint256 spenderTokenId = spenderTokenIds[0];
 
-        assertEq(spenderTokenIds.length, 1);
+        assertEq(spenderTokenIds.length, amount);
         assertEq(spenderTokenId, tokenId);
 
         // user balance
@@ -247,12 +251,13 @@ contract ERC7629ATest is Test {
     }
 
     function test_erc721_transfer_flow_with_invalid_receiver_reverts() public {
+        uint256 amount = 1;
         uint256 tokenId = 1;
         address user = address(0x1);
         address spender = address(0x2);
 
         // mint erc271
-        erc7629a.mintERC721(user, tokenId);
+        erc7629a.mintERC721(user, amount);
 
         vm.expectRevert(ERC7629A.ERC721InvalidReceiver.selector);
         vm.prank(spender);
@@ -452,16 +457,17 @@ contract ERC7629ATest is Test {
     /* %=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*&%=*& */
 
     function test_erc721_mint() public {
-        uint256 amount = 1;
-        uint256 tokenId = 1;
+        uint256 amount = 2;
         address owner = address(0x1);
         erc7629a.mintERC721(owner, amount);
 
         uint256[] memory tokenIds = erc7629a.owned(owner);
         assertEq(tokenIds.length, amount);
-        assertEq(tokenIds[0], tokenId);
+        assertEq(tokenIds[0], 1);
+        assertEq(tokenIds[1], 2);
 
-        assertEq(erc7629a.ownerOf(tokenId), owner);
+        assertEq(erc7629a.ownerOf(1), owner);
+        assertEq(erc7629a.ownerOf(2), owner);
         assertEq(erc7629a.erc721BalanceOf(owner), amount);
         assertEq(erc7629a.erc721TotalSupply(), amount);
     }
@@ -476,15 +482,13 @@ contract ERC7629ATest is Test {
         uint256 expectedTotalSupply = 0;
         assertEq(totalSupply, expectedTotalSupply);
 
-        uint256 tokenId = 1;
-        erc7629a.mintERC721(address(0x1), tokenId);
+        erc7629a.mintERC721(address(0x1), 1);
 
         totalSupply = erc7629a.erc721TotalSupply();
         expectedTotalSupply = 1;
         assertEq(totalSupply, expectedTotalSupply);
 
-        tokenId = 2;
-        erc7629a.mintERC721(address(0x1), tokenId);
+        erc7629a.mintERC721(address(0x1), 1);
 
         totalSupply = erc7629a.erc721TotalSupply();
         expectedTotalSupply = 2;
@@ -496,15 +500,13 @@ contract ERC7629ATest is Test {
         uint256 expectedBalance = 0;
         assertEq(balance, expectedBalance);
 
-        uint256 tokenId = 1;
-        erc7629a.mintERC721(address(0x1), tokenId);
+        erc7629a.mintERC721(address(0x1), 1);
 
         balance = erc7629a.erc721BalanceOf(address(0x1));
         expectedBalance = 1;
         assertEq(balance, expectedBalance);
 
-        tokenId = 2;
-        erc7629a.mintERC721(address(0x1), tokenId);
+        erc7629a.mintERC721(address(0x1), 1);
 
         balance = erc7629a.erc721BalanceOf(address(0x1));
         expectedBalance = 2;
@@ -512,28 +514,26 @@ contract ERC7629ATest is Test {
     }
 
     function test_erc721_owned() public {
-        uint256 tokenId = 1;
-        erc7629a.mintERC721(address(0x1), tokenId);
+        erc7629a.mintERC721(address(0x1), 1);
 
         uint256[] memory tokenIds = erc7629a.owned(address(0x1));
         assertEq(tokenIds.length, 1);
-        assertEq(tokenIds[0], tokenId);
+        assertEq(tokenIds[0], 1);
 
-        tokenId = 2;
-        erc7629a.mintERC721(address(0x1), tokenId);
+        erc7629a.mintERC721(address(0x1), 2);
 
         tokenIds = erc7629a.owned(address(0x1));
-        assertEq(tokenIds.length, 2);
+        assertEq(tokenIds.length, 3);
         assertEq(tokenIds[0], 1);
         assertEq(tokenIds[1], 2);
+        assertEq(tokenIds[2], 3);
     }
 
     function test_erc721_owner_of() public {
-        uint256 tokenId = 1;
         address owner = address(0x1);
-        erc7629a.mintERC721(owner, tokenId);
+        erc7629a.mintERC721(owner, 1);
 
-        address tokenOwner = erc7629a.ownerOf(tokenId);
+        address tokenOwner = erc7629a.ownerOf(1);
         assertEq(tokenOwner, owner);
     }
 
@@ -546,7 +546,7 @@ contract ERC7629ATest is Test {
         uint256 tokenId = 1;
         address owner = address(0x1);
         address spender = address(0x2);
-        erc7629a.mintERC721(owner, tokenId);
+        erc7629a.mintERC721(owner, 1);
 
         address approved = erc7629a.getApproved(tokenId);
         assertEq(approved, address(0));
@@ -588,14 +588,15 @@ contract ERC7629ATest is Test {
         address from = address(0x1);
         address to = address(0x2);
 
-        erc7629a.mintERC721(from, 1);
-        erc7629a.mintERC721(from, 2);
+        erc7629a.mintERC721(from, 3);
 
         vm.prank(from);
-        erc7629a.erc721TransferFrom(from, to, 1);
+        erc7629a.erc721TransferFrom(from, to, 2);
 
-        assertEq(erc7629a.ownerOf(1), to);
-        assertEq(erc7629a.erc721BalanceOf(from), 1);
+        assertEq(erc7629a.ownerOf(1), from);
+        assertEq(erc7629a.ownerOf(2), to);
+        assertEq(erc7629a.ownerOf(3), from);
+        assertEq(erc7629a.erc721BalanceOf(from), 2);
         assertEq(erc7629a.erc721BalanceOf(to), 1);
     }
 
